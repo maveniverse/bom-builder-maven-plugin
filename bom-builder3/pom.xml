@@ -98,8 +98,8 @@
           <version>${version.mavenPluginPlugin}</version>
           <configuration>
             <goalPrefix>bom-builder</goalPrefix>
-            <requiredMavenVersion>3.6.3</requiredMavenVersion>
-            <requiredJavaVersion>8</requiredJavaVersion>
+            <requiredMavenVersion>${requireRuntimeMavenVersion.version}</requiredMavenVersion>
+            <requiredJavaVersion>${maven.compiler.release}</requiredJavaVersion>
             <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
           </configuration>
           <executions>
