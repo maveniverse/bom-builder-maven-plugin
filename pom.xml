@@ -37,7 +37,17 @@
   </modules>
 
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.build.outputTimestamp>2024-10-07T21:11:27Z</project.build.outputTimestamp>
+
+    <!--
+    Build time: latest stable Maven and latest Java LTS.
+    Run time: "not so old" Maven (3.6.3+) and latest Java LTS.
+    -->
+    <maven.compiler.release>8</maven.compiler.release>
+    <requireBuildtimeJavaVersion.version>[21.0.3,)</requireBuildtimeJavaVersion.version>
+    <requireBuildtimeMavenVersion.version>[3.9.9,)</requireBuildtimeMavenVersion.version>
+    <requireRuntimeMavenVersion.version>[3.8.8,)</requireRuntimeMavenVersion.version>
+
     <version.maven>3.9.9</version.maven>
     <version.mavenPluginPlugin>3.15.0</version.mavenPluginPlugin>
     <version.slf4j>1.7.36</version.slf4j>
