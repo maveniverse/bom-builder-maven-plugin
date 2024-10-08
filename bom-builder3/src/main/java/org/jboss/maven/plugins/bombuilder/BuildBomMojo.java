@@ -3,8 +3,9 @@ package org.jboss.maven.plugins.bombuilder;
 import static org.codehaus.plexus.util.StringUtils.trim;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -264,9 +265,9 @@ public class BuildBomMojo extends AbstractMojo {
             if (!outputFile.getParentFile().exists()) {
                 outputFile.getParentFile().mkdirs();
             }
-            try (FileWriter writer = new FileWriter(outputFile)) {
+            try (OutputStream outputStream = Files.newOutputStream(outputFile.toPath())) {
                 MavenXpp3Writer mavenWriter = new MavenXpp3Writer();
-                mavenWriter.write(writer, pomModel);
+                mavenWriter.write(outputStream, pomModel);
             } catch (IOException e) {
                 throw new MojoExecutionException("Unable to write pom file.", e);
             }
