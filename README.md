@@ -14,7 +14,7 @@ The plugin is configured in the "plugins" section of the pom.
 
     <plugins>
       <plugin>
-        <groupId>org.jboss.maven.plugins</groupId>
+        <groupId>eu.maveniverse.maven.plugins</groupId>
         <artifactId>bom-builder-maven-plugin</artifactId>
         <version>1.0.0.Beta3</version>
         <executions>
@@ -24,7 +24,7 @@ The plugin is configured in the "plugins" section of the pom.
               <goal>build-bom</goal>
             </goals>
             <configuration>
-              <bomGroupId>org.jboss.bom</bomGroupId>
+              <bomGroupId>org.foo.bom</bomGroupId>
               <bomArtifactId>my-artifacts-bom</bomArtifactId>
               <bomVersion>1.0.0</bomVersion>
               <bomName>My Artifacts BOM</bomName>

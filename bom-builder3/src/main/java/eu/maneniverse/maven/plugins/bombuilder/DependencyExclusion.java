@@ -1,4 +1,4 @@
-package org.jboss.maven.plugins.bombuilder;
+package eu.maneniverse.maven.plugins.bombuilder;
 
 /**
  * A class to represent dependency exclusion configuration for the BOM

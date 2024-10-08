@@ -1,4 +1,4 @@
-package org.jboss.maven.plugins.bombuilder;
+package eu.maneniverse.maven.plugins.bombuilder;
 
 import java.util.HashSet;
 import java.util.Map;
