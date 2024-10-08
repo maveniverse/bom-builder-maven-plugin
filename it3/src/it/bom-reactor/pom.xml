@@ -16,9 +16,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>eu.maveniverse.maven.parent</groupId>
-    <artifactId>parent</artifactId>
-    <version>20</version>
+    <groupId>org.apache</groupId>
+    <artifactId>apache</artifactId>
+    <version>33</version>
   </parent>
 
   <groupId>test</groupId>
