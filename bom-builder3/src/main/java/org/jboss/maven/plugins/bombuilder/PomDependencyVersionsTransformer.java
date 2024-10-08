@@ -25,11 +25,7 @@ class PomDependencyVersionsTransformer {
             groupIdArtifactIdVersions.put(groupIdArtifactId, dependency.getVersion());
             groupIdVersions.put(groupId, dependency.getVersion());
 
-            Set<String> artifactIds = groupIdArtifactIds.get(groupId);
-            if (artifactIds == null) {
-                artifactIds = new HashSet<>();
-                groupIdArtifactIds.put(groupId, artifactIds);
-            }
+            Set<String> artifactIds = groupIdArtifactIds.computeIfAbsent(groupId, k -> new HashSet<>());
             artifactIds.add(artifactId);
         }
 

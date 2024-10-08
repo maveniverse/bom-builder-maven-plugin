@@ -1,14 +1,15 @@
 package org.jboss.maven.plugins.bombuilder;
 
-import static org.codehaus.plexus.util.StringUtils.defaultString;
 import static org.codehaus.plexus.util.StringUtils.trim;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
@@ -219,7 +220,7 @@ public class BuildBomMojo extends AbstractMojo {
     }
 
     boolean isExcludedDependency(Artifact artifact) {
-        if (dependencyExclusions == null || dependencyExclusions.size() == 0) {
+        if (dependencyExclusions == null || dependencyExclusions.isEmpty()) {
             return false;
         }
         for (DependencyExclusion exclusion : dependencyExclusions) {
@@ -243,7 +244,7 @@ public class BuildBomMojo extends AbstractMojo {
     }
 
     private String defaultAndTrim(String string) {
-        return defaultString(trim(string), "");
+        return Objects.toString(trim(string), "");
     }
 
     private void applyExclusions(Artifact artifact, Dependency dep) {
@@ -264,11 +265,10 @@ public class BuildBomMojo extends AbstractMojo {
             if (!outputFile.getParentFile().exists()) {
                 outputFile.getParentFile().mkdirs();
             }
-            try (FileWriter writer = new FileWriter(outputFile)) {
+            try (OutputStream outputStream = Files.newOutputStream(outputFile.toPath())) {
                 MavenXpp3Writer mavenWriter = new MavenXpp3Writer();
-                mavenWriter.write(writer, pomModel);
+                mavenWriter.write(outputStream, pomModel);
             } catch (IOException e) {
-                e.printStackTrace();
                 throw new MojoExecutionException("Unable to write pom file.", e);
             }
         }

@@ -43,8 +43,8 @@ bomArtifactId - The artifactId to set in the generated BOM
 bomVersion - The version to set in the generated BOM
 bomName - The name to set in the generated BOM
 bomDescription - The description to set in the generated BOM
-exclusions - A list of exclusions to set in the genertated BOM
-dependencyExclusions - A list of dependencies which should not be included in the genertated BOM
+exclusions - A list of exclusions to set in the generated BOM
+dependencyExclusions - A list of dependencies which should not be included in the generated BOM
 
 Each exclusion should contain four parameters:
   - dependencyGroupId
