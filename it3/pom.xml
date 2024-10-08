@@ -29,6 +29,12 @@
 
   <name>${project.groupId}:${project.artifactId}</name>
 
+  <properties>
+    <enforcer.skip>true</enforcer.skip>
+    <maven.install.skip>true</maven.install.skip>
+    <maven.deploy.skip>true</maven.deploy.skip>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>eu.maveniverse.maven.plugins</groupId>
