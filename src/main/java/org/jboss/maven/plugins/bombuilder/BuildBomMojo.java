@@ -41,25 +41,25 @@ public class BuildBomMojo
     /**
      * BOM groupId
      */
-    @Parameter( required = true )
+    @Parameter( required = true, property = "bom.groupId" )
     private String bomGroupId;
 
     /**
      * BOM artifactId
      */
-    @Parameter( required = true )
+    @Parameter( required = true, property = "bom.artifactId")
     private String bomArtifactId;
 
     /**
      * BOM version
      */
-    @Parameter( required = true )
+    @Parameter( required = true, property = "bom.version" )
     private String bomVersion;
 
     /**
      * BOM name
      */
-    @Parameter( defaultValue = "" )
+    @Parameter( defaultValue = "", property = "bom.name" )
     private String bomName;
 
     /**
@@ -101,11 +101,20 @@ public class BuildBomMojo
     @Parameter
     boolean usePropertiesForVersion;
 
+    @Parameter( property = "bom.useDependencies")
+    boolean useDependencies;
+
+    @Parameter( property = "bom.includePoms")
+    boolean includePoms;
+
     /**
      * The current project
      */
     @Component
     MavenProject mavenProject;
+
+    @Parameter( defaultValue = "${session.allProjects}" )
+    List<MavenProject> allProjects;
 
     /**
      *
@@ -166,7 +175,16 @@ public class BuildBomMojo
     private void addDependencyManagement( Model pomModel )
     {
         // Sort the artifacts for readability
-        List<Artifact> projectArtifacts = new ArrayList<Artifact>( mavenProject.getArtifacts() );
+        List<Artifact> projectArtifacts = new ArrayList<>();
+        if ( useDependencies ) {
+            projectArtifacts.addAll( mavenProject.getArtifacts() );
+        } else {
+            for (MavenProject prj : allProjects) {
+                if (includePoms || !"pom".equals(prj.getArtifact().getType()) ) {
+                    projectArtifacts.add(prj.getArtifact());
+                }
+            }
+        }
         Collections.sort( projectArtifacts );
 
         Properties versionProperties = new Properties();
