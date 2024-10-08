@@ -41,19 +41,19 @@ public class BuildBomMojo
     /**
      * BOM groupId
      */
-    @Parameter( required = true, property = "bom.groupId" )
+    @Parameter( required = true, property = "bom.groupId", defaultValue = "${project.groupId}")
     private String bomGroupId;
 
     /**
      * BOM artifactId
      */
-    @Parameter( required = true, property = "bom.artifactId")
+    @Parameter( required = true, property = "bom.artifactId", defaultValue = "${project.artifactId}")
     private String bomArtifactId;
 
     /**
      * BOM version
      */
-    @Parameter( required = true, property = "bom.version" )
+    @Parameter( required = true, property = "bom.version", defaultValue = "${project.version}")
     private String bomVersion;
 
     /**
