@@ -15,7 +15,7 @@ class OrderedProperties extends Properties {
 
     @Override
     public synchronized void putAll(Map<?, ?> t) {
-        super.putAll(t);
+        t.forEach(this::put);
     }
 
     @Override
@@ -25,9 +25,7 @@ class OrderedProperties extends Properties {
 
     @Override
     public synchronized Object put(Object key, Object value) {
-        if (keyOrder.contains(key)) {
-            keyOrder.remove(key);
-        }
+        keyOrder.remove(key);
         keyOrder.add(key);
         return super.put(key, value);
     }

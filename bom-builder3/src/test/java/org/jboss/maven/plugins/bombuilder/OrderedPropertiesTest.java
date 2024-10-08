@@ -1,20 +1,20 @@
 package org.jboss.maven.plugins.bombuilder;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Properties;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class OrderedPropertiesTest {
 
     @Test
-    public void testPropertiesAreNotSortedInOrderOfAdding() throws Exception {
-        Properties properties = new Properties();
+    public void testPropertiesAreSortedInOrderOfAdding() throws Exception {
+        OrderedProperties properties = new OrderedProperties();
         properties.put("project.build.sourceEncoding", "utf-8");
         properties.put("version.org.codehaus.plexus", "1.2.3");
 
         assertEquals(
-                "version.org.codehaus.plexus", properties.keySet().iterator().next());
+                "project.build.sourceEncoding", properties.keySet().iterator().next());
     }
 
     @Test

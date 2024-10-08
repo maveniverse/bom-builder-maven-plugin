@@ -1,11 +1,11 @@
 package org.jboss.maven.plugins.bombuilder;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Model;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class PomDependencyVersionsTransformerTest {
     @Test

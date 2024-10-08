@@ -1,20 +1,21 @@
 package org.jboss.maven.plugins.bombuilder;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.MockitoAnnotations.initMocks;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
+import java.util.Collections;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.handler.ArtifactHandler;
 import org.apache.maven.model.Model;
 import org.apache.maven.project.MavenProject;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 public class BuildBomMojoTest {
 
@@ -26,9 +27,9 @@ public class BuildBomMojoTest {
 
     private BuildBomMojo mojo;
 
-    @Before
-    public void before() {
-        initMocks(this);
+    @BeforeEach
+    public void before() throws Exception {
+        MockitoAnnotations.openMocks(this).close();
         mojo = createBuildBomMojo();
     }
 
@@ -53,6 +54,7 @@ public class BuildBomMojoTest {
         mojo.mavenProject = new MavenProject();
         mojo.mavenProject.getBuild().setOutputDirectory("target");
         mojo.outputFilename = "pom.xml";
+        mojo.allProjects = Collections.emptyList();
         return mojo;
     }
 
