@@ -1,6 +1,5 @@
 package org.jboss.maven.plugins.bombuilder;
 
-import static org.codehaus.plexus.util.StringUtils.defaultString;
 import static org.codehaus.plexus.util.StringUtils.trim;
 
 import java.io.File;
@@ -9,6 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
@@ -219,7 +219,7 @@ public class BuildBomMojo extends AbstractMojo {
     }
 
     boolean isExcludedDependency(Artifact artifact) {
-        if (dependencyExclusions == null || dependencyExclusions.size() == 0) {
+        if (dependencyExclusions == null || dependencyExclusions.isEmpty()) {
             return false;
         }
         for (DependencyExclusion exclusion : dependencyExclusions) {
@@ -243,7 +243,7 @@ public class BuildBomMojo extends AbstractMojo {
     }
 
     private String defaultAndTrim(String string) {
-        return defaultString(trim(string), "");
+        return Objects.toString(trim(string), "");
     }
 
     private void applyExclusions(Artifact artifact, Dependency dep) {
@@ -268,7 +268,6 @@ public class BuildBomMojo extends AbstractMojo {
                 MavenXpp3Writer mavenWriter = new MavenXpp3Writer();
                 mavenWriter.write(writer, pomModel);
             } catch (IOException e) {
-                e.printStackTrace();
                 throw new MojoExecutionException("Unable to write pom file.", e);
             }
         }

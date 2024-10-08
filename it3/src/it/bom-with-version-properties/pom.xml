@@ -46,8 +46,8 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.jboss.maven.plugins</groupId>
-        <artifactId>bom-builder-maven-plugin</artifactId>
+        <groupId>eu.maveniverse.maven.plugins</groupId>
+        <artifactId>bom-builder3</artifactId>
         <version>@pom.version@</version>
         <executions>
           <execution>
@@ -61,6 +61,7 @@
               <bomArtifactId>junit-bom</bomArtifactId>
               <bomVersion>1.0</bomVersion>
               <usePropertiesForVersion>true</usePropertiesForVersion>
+              <useDependencies>true</useDependencies>
             </configuration>
           </execution>
         </executions>

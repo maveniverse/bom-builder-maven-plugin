@@ -21,10 +21,10 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>test</groupId>
-  <artifactId>basic-bom-with-properties</artifactId>
+  <artifactId>basic-bom</artifactId>
   <version>1.0-SNAPSHOT</version>
 
-  <name>Test to create basic bom with version properties</name>
+  <name>Test to create basic bom</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -37,11 +37,6 @@
       <version>3.0</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-model</artifactId>
-      <version>3.1.1</version>
-    </dependency>
-    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.8</version>
@@ -51,8 +46,8 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.jboss.maven.plugins</groupId>
-        <artifactId>bom-builder-maven-plugin</artifactId>
+        <groupId>eu.maveniverse.maven.plugins</groupId>
+        <artifactId>bom-builder3</artifactId>
         <version>@pom.version@</version>
         <executions>
           <execution>
@@ -61,10 +56,17 @@
               <goal>build-bom</goal>
             </goals>
             <configuration>
+              <outputFilename>pom.xml</outputFilename>
               <bomGroupId>org.test</bomGroupId>
               <bomArtifactId>junit-bom</bomArtifactId>
               <bomVersion>1.0</bomVersion>
-              <addVersionProperties>true</addVersionProperties>
+              <useDependencies>true</useDependencies>
+              <dependencyExclusions>
+                <dependencyExclusion>
+                  <groupId>org.apache.maven</groupId>
+                  <artifactId>maven-artifact</artifactId>
+                </dependencyExclusion>
+              </dependencyExclusions>
             </configuration>
           </execution>
         </executions>
