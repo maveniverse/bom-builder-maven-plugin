@@ -16,7 +16,7 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Exclusion;
 import org.apache.maven.model.Model;
-import org.apache.maven.model.building.ModelBuilder;
+import org.apache.maven.model.Parent;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -26,7 +26,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.ProjectBuilder;
+import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.plexus.util.StringUtils;
 
 /**
@@ -39,6 +39,13 @@ import org.codehaus.plexus.util.StringUtils;
 public class BuildBomMojo extends AbstractMojo {
 
     private static final String VERSION_PROPERTY_PREFIX = "version.";
+
+    /**
+     * BOM parent GAV
+     */
+    @Parameter
+    private String bomParentGav;
+
     /**
      * BOM groupId
      */
@@ -58,9 +65,15 @@ public class BuildBomMojo extends AbstractMojo {
     private String bomVersion;
 
     /**
+     * BOM classifier
+     */
+    @Parameter(required = true, property = "bom.classifier", defaultValue = "bom")
+    private String bomClassifier;
+
+    /**
      * BOM name
      */
-    @Parameter(defaultValue = "", property = "bom.name")
+    @Parameter(property = "bom.name")
     private String bomName;
 
     /**
@@ -72,7 +85,7 @@ public class BuildBomMojo extends AbstractMojo {
     /**
      * BOM description
      */
-    @Parameter(defaultValue = "")
+    @Parameter
     private String bomDescription;
 
     /**
@@ -83,7 +96,7 @@ public class BuildBomMojo extends AbstractMojo {
 
     /**
      * Whether the BOM should include the dependency exclusions that
-     * are present in the source POM.  By default the exclusions
+     * are present in the source POM.  By default, the exclusions
      * will not be copied to the new BOM.
      */
     @Parameter
@@ -96,9 +109,9 @@ public class BuildBomMojo extends AbstractMojo {
     private List<DependencyExclusion> dependencyExclusions;
 
     /**
-     * Whether use properties to specify dependency versions in BOM
+     * Whether to use properties to specify dependency versions in BOM
      */
-    @Parameter
+    @Parameter(property = "bom.usePropertiesForVersion")
     boolean usePropertiesForVersion;
 
     @Parameter(property = "bom.useDependencies")
@@ -107,26 +120,26 @@ public class BuildBomMojo extends AbstractMojo {
     @Parameter(property = "bom.includePoms")
     boolean includePoms;
 
+    @Parameter(property = "bom.useProjectParentAsParent")
+    boolean useProjectParentAsParent;
+
+    @Parameter(property = "bom.attach")
+    boolean attach;
+
     /**
      * The current project
      */
-    @Component
+    @Parameter(defaultValue = "${project}")
     MavenProject mavenProject;
 
+    /**
+     * All projects from reactor
+     */
     @Parameter(defaultValue = "${session.allProjects}")
     List<MavenProject> allProjects;
 
-    /**
-     *
-     */
     @Component
-    private ModelBuilder modelBuilder;
-
-    /**
-     *
-     */
-    @Component
-    private ProjectBuilder projectBuilder;
+    MavenProjectHelper mavenProjectHelper;
 
     private final PomDependencyVersionsTransformer versionsTransformer;
     private final ModelWriter modelWriter;
@@ -135,7 +148,7 @@ public class BuildBomMojo extends AbstractMojo {
         this(new ModelWriter(), new PomDependencyVersionsTransformer());
     }
 
-    public BuildBomMojo(ModelWriter modelWriter, PomDependencyVersionsTransformer versionsTransformer) {
+    BuildBomMojo(ModelWriter modelWriter, PomDependencyVersionsTransformer versionsTransformer) {
         this.versionsTransformer = versionsTransformer;
         this.modelWriter = modelWriter;
     }
@@ -148,12 +161,32 @@ public class BuildBomMojo extends AbstractMojo {
             model = versionsTransformer.transformPomModel(model);
             getLog().debug("Dependencies versions converted to properties");
         }
-        modelWriter.writeModel(model, new File(mavenProject.getBuild().getDirectory(), outputFilename));
+        File outputFile = new File(mavenProject.getBuild().getDirectory(), outputFilename);
+        modelWriter.writeModel(model, outputFile);
+        if (attach) {
+            mavenProjectHelper.attachArtifact(mavenProject, bomClassifier, outputFile);
+        }
     }
 
-    private Model initializeModel() {
+    private Model initializeModel() throws MojoExecutionException {
         Model pomModel = new Model();
         pomModel.setModelVersion("4.0.0");
+
+        if (bomParentGav != null) {
+            String[] gav = bomParentGav.split(":");
+            if (gav.length != 3) {
+                throw new MojoExecutionException(
+                        "BOM parent should be specified as [groupId]:[artifactId]:[version] but is '" + bomParentGav
+                                + "'");
+            }
+            Parent parent = new Parent();
+            parent.setGroupId(gav[0]);
+            parent.setArtifactId(gav[1]);
+            parent.setVersion(gav[2]);
+            pomModel.setParent(parent);
+        } else if (useProjectParentAsParent && mavenProject.getModel().getParent() != null) {
+            pomModel.setParent(mavenProject.getModel().getParent());
+        }
 
         pomModel.setGroupId(bomGroupId);
         pomModel.setArtifactId(bomArtifactId);
