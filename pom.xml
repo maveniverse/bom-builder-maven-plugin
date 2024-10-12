@@ -36,6 +36,23 @@
     <module>it3</module>
   </modules>
 
+  <scm>
+    <connection>scm:git:git@github.com:maveniverse/bom-builder-maven-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:maveniverse/bom-builder-maven-plugin.git</developerConnection>
+    <tag>HEAD</tag>
+    <url>https://github.com/maveniverse/bom-builder-maven-plugin</url>
+  </scm>
+
+  <issueManagement>
+    <system>Github</system>
+    <url>https://github.com/maveniverse/bom-builder-maven-plugin/issues</url>
+  </issueManagement>
+
+  <ciManagement>
+    <system>Github</system>
+    <url>https://github.com/maveniverse/bom-builder-maven-plugin/actions</url>
+  </ciManagement>
+
   <properties>
     <project.build.outputTimestamp>2024-10-07T21:11:27Z</project.build.outputTimestamp>
 
