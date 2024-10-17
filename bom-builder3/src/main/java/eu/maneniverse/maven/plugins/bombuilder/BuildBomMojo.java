@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.DefaultArtifact;
+import org.apache.maven.artifact.handler.ArtifactHandler;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Exclusion;
@@ -164,7 +166,10 @@ public class BuildBomMojo extends AbstractMojo {
         File outputFile = new File(mavenProject.getBuild().getDirectory(), outputFilename);
         modelWriter.writeModel(model, outputFile);
         if (attach) {
-            mavenProjectHelper.attachArtifact(mavenProject, bomClassifier, outputFile);
+            DefaultArtifact artifact = new DefaultArtifact(
+                    bomGroupId, bomArtifactId, bomVersion, null, "pom", bomClassifier, new PomArtifactHandler());
+            artifact.setFile(outputFile);
+            mavenProject.addAttachedArtifact(artifact);
         }
     }
 
@@ -304,6 +309,38 @@ public class BuildBomMojo extends AbstractMojo {
             } catch (IOException e) {
                 throw new MojoExecutionException("Unable to write pom file.", e);
             }
+        }
+    }
+
+    static class PomArtifactHandler implements ArtifactHandler {
+        PomArtifactHandler() {}
+
+        public String getClassifier() {
+            return null;
+        }
+
+        public String getDirectory() {
+            return null;
+        }
+
+        public String getExtension() {
+            return "pom";
+        }
+
+        public String getLanguage() {
+            return "none";
+        }
+
+        public String getPackaging() {
+            return "pom";
+        }
+
+        public boolean isAddedToClasspath() {
+            return false;
+        }
+
+        public boolean isIncludesDependencies() {
+            return false;
         }
     }
 }
