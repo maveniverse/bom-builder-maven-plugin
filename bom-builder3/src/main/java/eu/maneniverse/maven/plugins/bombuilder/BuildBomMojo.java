@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
@@ -79,7 +80,9 @@ public class BuildBomMojo extends AbstractMojo {
     private String bomName;
 
     /**
-     * BOM name
+     * Whether to add collected versions to BOM properties
+     *
+     * @see #usePropertiesForVersion
      */
     @Parameter
     private boolean addVersionProperties;
@@ -111,13 +114,51 @@ public class BuildBomMojo extends AbstractMojo {
     private List<DependencyExclusion> dependencyExclusions;
 
     /**
-     * Whether to use properties to specify dependency versions in BOM
+     * Whether to use properties to specify dependency versions in BOM. This will also add properties to BOM with
+     * dependency versions.
+     *
+     * @see #addVersionProperties
      */
     @Parameter(property = "bom.usePropertiesForVersion")
     boolean usePropertiesForVersion;
 
-    @Parameter(property = "bom.useDependencies")
-    boolean useDependencies;
+    /**
+     * Modes to control dependencies getting into BOM.
+     *
+     * @since 1.0.2
+     */
+    public enum UseDependencies {
+        PROJECT_ONLY(true, false, false),
+        DIRECT_ONLY(false, true, false),
+        TRANSITIVE_ONLY(false, false, true),
+        PROJECT_AND_DIRECT(true, true, false),
+        PROJECT_AND_TRANSITIVE(true, false, true);
+
+        private final boolean project;
+        private final boolean directDependencies;
+        private final boolean transitiveDependencies;
+
+        UseDependencies(boolean project, boolean directDependencies, boolean transitiveDependencies) {
+            this.project = project;
+            this.directDependencies = directDependencies;
+            this.transitiveDependencies = transitiveDependencies;
+        }
+
+        public boolean isProject() {
+            return project;
+        }
+
+        public boolean isDirectDependencies() {
+            return directDependencies;
+        }
+
+        public boolean isTransitiveDependencies() {
+            return transitiveDependencies;
+        }
+    }
+
+    @Parameter(property = "bom.useDependencies", defaultValue = "PROJECT_ONLY")
+    UseDependencies useDependencies;
 
     @Parameter(property = "bom.includePoms")
     boolean includePoms;
@@ -208,17 +249,23 @@ public class BuildBomMojo extends AbstractMojo {
     }
 
     private void addDependencyManagement(Model pomModel) {
-        // Sort the artifacts for readability
-        List<Artifact> projectArtifacts = new ArrayList<>();
-        if (useDependencies) {
-            projectArtifacts.addAll(mavenProject.getArtifacts());
-        } else {
+        HashSet<Artifact> projectArtifactsSet = new HashSet<>();
+        if (useDependencies.isProject()) {
             for (MavenProject prj : allProjects) {
                 if (includePoms || !"pom".equals(prj.getArtifact().getType())) {
-                    projectArtifacts.add(prj.getArtifact());
+                    projectArtifactsSet.add(prj.getArtifact());
                 }
             }
         }
+        if (useDependencies.isDirectDependencies()) {
+            projectArtifactsSet.addAll(mavenProject.getDependencyArtifacts());
+        }
+        if (useDependencies.isTransitiveDependencies()) {
+            projectArtifactsSet.addAll(mavenProject.getArtifacts());
+        }
+
+        // Sort the artifacts for readability
+        ArrayList<Artifact> projectArtifacts = new ArrayList<>(projectArtifactsSet);
         Collections.sort(projectArtifacts);
 
         Properties versionProperties = new Properties();
