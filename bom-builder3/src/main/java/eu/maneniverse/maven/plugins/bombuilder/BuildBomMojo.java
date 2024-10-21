@@ -81,6 +81,8 @@ public class BuildBomMojo extends AbstractMojo {
 
     /**
      * Whether to add collected versions to BOM properties
+     *
+     * @see #usePropertiesForVersion
      */
     @Parameter
     private boolean addVersionProperties;
