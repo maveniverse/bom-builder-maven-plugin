@@ -55,6 +55,7 @@ public class BuildBomMojoTest {
         mojo.mavenProject.getBuild().setOutputDirectory("target");
         mojo.outputFilename = "pom.xml";
         mojo.allProjects = Collections.emptyList();
+        mojo.useDependencies = BuildBomMojo.UseDependencies.PROJECT_ONLY;
         return mojo;
     }
 

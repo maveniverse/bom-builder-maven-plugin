@@ -61,7 +61,7 @@
               <bomArtifactId>junit-bom</bomArtifactId>
               <bomVersion>1.0</bomVersion>
               <usePropertiesForVersion>true</usePropertiesForVersion>
-              <useDependencies>true</useDependencies>
+              <useDependencies>TRANSITIVE_ONLY</useDependencies>
             </configuration>
           </execution>
         </executions>

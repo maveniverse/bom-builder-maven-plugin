@@ -64,7 +64,7 @@
               <bomGroupId>org.test</bomGroupId>
               <bomArtifactId>junit-bom</bomArtifactId>
               <bomVersion>1.0</bomVersion>
-              <useDependencies>true</useDependencies>
+              <useDependencies>TRANSITIVE_ONLY</useDependencies>
               <addVersionProperties>true</addVersionProperties>
             </configuration>
           </execution>

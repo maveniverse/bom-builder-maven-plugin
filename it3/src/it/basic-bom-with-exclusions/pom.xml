@@ -59,7 +59,7 @@
               <bomGroupId>org.test</bomGroupId>
               <bomArtifactId>junit-bom</bomArtifactId>
               <bomVersion>1.0</bomVersion>
-              <useDependencies>true</useDependencies>
+              <useDependencies>TRANSITIVE_ONLY</useDependencies>
               <exclusions>
                 <exclusion>
                   <dependencyGroupId>org.apache.maven</dependencyGroupId>
