@@ -80,7 +80,7 @@ public class BuildBomMojo extends AbstractMojo {
     private String bomName;
 
     /**
-     * BOM name
+     * Whether to add collected versions to BOM properties
      */
     @Parameter
     private boolean addVersionProperties;
@@ -112,7 +112,10 @@ public class BuildBomMojo extends AbstractMojo {
     private List<DependencyExclusion> dependencyExclusions;
 
     /**
-     * Whether to use properties to specify dependency versions in BOM
+     * Whether to use properties to specify dependency versions in BOM. This will also add properties to BOM with
+     * dependency versions.
+     *
+     * @see #addVersionProperties
      */
     @Parameter(property = "bom.usePropertiesForVersion")
     boolean usePropertiesForVersion;
