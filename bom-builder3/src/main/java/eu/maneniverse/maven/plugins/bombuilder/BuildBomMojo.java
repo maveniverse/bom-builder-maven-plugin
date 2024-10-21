@@ -119,6 +119,8 @@ public class BuildBomMojo extends AbstractMojo {
 
     /**
      * Modes to control dependencies getting into BOM.
+     *
+     * @since 1.0.2
      */
     public enum UseDependencies {
         PROJECT_ONLY(true, false, false),
