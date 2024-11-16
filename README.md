@@ -16,7 +16,7 @@ The plugin is configured in the "plugins" section of the pom.
       <plugin>
         <groupId>eu.maveniverse.maven.plugins</groupId>
         <artifactId>bom-builder-maven-plugin</artifactId>
-        <version>1.0.0.Beta3</version>
+        <version>1.0.2</version>
         <executions>
           <execution>
             <id>build-bom</id>
