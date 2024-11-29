@@ -38,7 +38,8 @@ import org.codehaus.plexus.util.StringUtils;
 @Mojo(
         name = "build-bom",
         defaultPhase = LifecyclePhase.GENERATE_RESOURCES,
-        requiresDependencyResolution = ResolutionScope.COMPILE)
+        requiresDependencyResolution = ResolutionScope.COMPILE,
+        threadSafe = true)
 public class BuildBomMojo extends AbstractMojo {
 
     private static final String VERSION_PROPERTY_PREFIX = "version.";
