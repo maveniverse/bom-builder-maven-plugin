@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -205,12 +207,12 @@ public class BuildBomMojo extends AbstractMojo {
             model = versionsTransformer.transformPomModel(model);
             getLog().debug("Dependencies versions converted to properties");
         }
-        File outputFile = new File(mavenProject.getBuild().getDirectory(), outputFilename);
-        modelWriter.writeModel(model, outputFile);
+        Path outputFile = Paths.get(mavenProject.getBuild().getDirectory()).resolve(outputFilename);
+        modelWriter.writeModel(model, outputFile.toFile());
         if (attach) {
             DefaultArtifact artifact = new DefaultArtifact(
                     bomGroupId, bomArtifactId, bomVersion, null, "pom", bomClassifier, new PomArtifactHandler());
-            artifact.setFile(outputFile);
+            artifact.setFile(outputFile.toFile());
             mavenProject.addAttachedArtifact(artifact);
         }
     }

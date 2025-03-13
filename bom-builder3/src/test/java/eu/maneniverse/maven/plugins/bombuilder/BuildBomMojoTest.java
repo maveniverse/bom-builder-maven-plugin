@@ -52,7 +52,8 @@ public class BuildBomMojoTest {
     private BuildBomMojo createBuildBomMojo() {
         BuildBomMojo mojo = new BuildBomMojo(modelWriter, versionTransformer);
         mojo.mavenProject = new MavenProject();
-        mojo.mavenProject.getBuild().setOutputDirectory("target");
+        mojo.mavenProject.getBuild().setDirectory("target");
+        mojo.mavenProject.getBuild().setOutputDirectory("target/classes");
         mojo.outputFilename = "pom.xml";
         mojo.allProjects = Collections.emptyList();
         mojo.useDependencies = BuildBomMojo.UseDependencies.PROJECT_ONLY;
