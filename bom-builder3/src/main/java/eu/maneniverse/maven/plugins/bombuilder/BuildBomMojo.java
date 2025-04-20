@@ -235,6 +235,7 @@ public class BuildBomMojo extends AbstractMojo {
             pomModel.setParent(parent);
         } else if (useProjectParentAsParent && mavenProject.getModel().getParent() != null) {
             pomModel.setParent(mavenProject.getModel().getParent());
+            pomModel.getParent().setRelativePath(null);
         }
 
         pomModel.setGroupId(bomGroupId);
