@@ -95,11 +95,11 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-plugin-plugin</artifactId>
-          <version>${version.mavenPluginPlugin}</version>
+          <version>${version.maven-plugin-tools}</version>
           <configuration>
             <goalPrefix>bom-builder</goalPrefix>
-            <requiredMavenVersion>${requireRuntimeMavenVersion.version}</requiredMavenVersion>
-            <requiredJavaVersion>${maven.compiler.release}</requiredJavaVersion>
+            <requiredMavenVersion>${requireRuntimeMavenVersion.range}</requiredMavenVersion>
+            <requiredJavaVersion>${requireRuntimeJavaVersion.range}</requiredJavaVersion>
             <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
           </configuration>
           <executions>
