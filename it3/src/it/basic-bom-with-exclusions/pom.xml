@@ -20,8 +20,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>test</groupId>
-  <artifactId>basic-bom</artifactId>
+  <groupId>basic-bom-with-exclusions</groupId>
+  <artifactId>basic-bom-with-exclusions</artifactId>
   <version>1.0-SNAPSHOT</version>
 
   <name>Test to create basic bom</name>

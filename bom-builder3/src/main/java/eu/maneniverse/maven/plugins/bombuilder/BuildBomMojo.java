@@ -47,40 +47,47 @@ public class BuildBomMojo extends AbstractMojo {
     private static final String VERSION_PROPERTY_PREFIX = "version.";
 
     /**
-     * BOM parent GAV
+     * BOM parent GAV, in form for {@code G:A:V}. If specified, the GAV will be set as parent of generated BOM.
+     * See also {@link #useProjectParentAsParent}.
      */
     @Parameter
     private String bomParentGav;
 
     /**
-     * BOM groupId
+     * BOM groupId, by default current project groupId.
      */
     @Parameter(required = true, property = "bom.groupId", defaultValue = "${project.groupId}")
     private String bomGroupId;
 
     /**
-     * BOM artifactId
+     * BOM artifactId, by default current project artifactId.
      */
     @Parameter(required = true, property = "bom.artifactId", defaultValue = "${project.artifactId}")
     private String bomArtifactId;
 
     /**
-     * BOM version
+     * BOM version, by default current project version.
      */
     @Parameter(required = true, property = "bom.version", defaultValue = "${project.version}")
     private String bomVersion;
 
     /**
-     * BOM classifier
-     */
-    @Parameter(required = true, property = "bom.classifier", defaultValue = "bom")
-    private String bomClassifier;
-
-    /**
-     * BOM name
+     * BOM name.
      */
     @Parameter(property = "bom.name")
     private String bomName;
+
+    /**
+     * BOM description.
+     */
+    @Parameter(property = "bom.description")
+    private String bomDescription;
+
+    /**
+     * BOM classifier, optional. If not specified, and {@link #attach} is set, will <em>replace current module POM</em>.
+     */
+    @Parameter(property = "bom.classifier")
+    private String bomClassifier;
 
     /**
      * Whether to add collected versions to BOM properties
@@ -91,13 +98,16 @@ public class BuildBomMojo extends AbstractMojo {
     private boolean addVersionProperties;
 
     /**
-     * BOM description
+     * Whether to use properties to specify dependency versions in BOM. This will also add properties to BOM with
+     * dependency versions.
+     *
+     * @see #addVersionProperties
      */
-    @Parameter
-    private String bomDescription;
+    @Parameter(property = "bom.usePropertiesForVersion")
+    boolean usePropertiesForVersion;
 
     /**
-     * BOM output file
+     * BOM output file. If relative, is resolved from {@code ${project.build}} directory.
      */
     @Parameter(defaultValue = "bom-pom.xml")
     String outputFilename;
@@ -111,19 +121,10 @@ public class BuildBomMojo extends AbstractMojo {
     private List<BomExclusion> exclusions;
 
     /**
-     * List of dependencies which should not be added to BOM
+     * List of dependencies which should be excluded from BOM.
      */
     @Parameter
     private List<DependencyExclusion> dependencyExclusions;
-
-    /**
-     * Whether to use properties to specify dependency versions in BOM. This will also add properties to BOM with
-     * dependency versions.
-     *
-     * @see #addVersionProperties
-     */
-    @Parameter(property = "bom.usePropertiesForVersion")
-    boolean usePropertiesForVersion;
 
     /**
      * Modes to control dependencies getting into BOM.
@@ -160,15 +161,37 @@ public class BuildBomMojo extends AbstractMojo {
         }
     }
 
+    /**
+     * What dependencies should generated BOM contain?
+     * <ul>
+     *     <li>"PROJECT_ONLY" will contain only the reactor artifacts (aka "skinny" BOM)</li>
+     *     <li>"DIRECT_ONLY" will contain only the direct dependencies</li>
+     *     <li>"TRANSITIVE_ONLY" will contain only the direct and their transitive dependencies</li>
+     *     <li>"PROJECT_AND_DIRECT" will contain only the reactor and their direct  dependencies</li>
+     *     <li>"PROJECT_AND_TRANSITIVE" will contain reactor, direct and their transitive dependencies (aka "fat" BOM)</li>
+     * </ul>
+     */
     @Parameter(property = "bom.useDependencies", defaultValue = "PROJECT_ONLY")
     UseDependencies useDependencies;
 
+    /**
+     * Whether generated BOM contain reactor artifacts with packaging "pom" as well, when a {@link #useDependencies}
+     * value is set that pulls in reactor artifacts.
+     */
     @Parameter(property = "bom.includePoms")
     boolean includePoms;
 
+    /**
+     * Should the generated BOM use project parent, if applicable, as parent? Ignored if {@link #bomParentGav} specified.
+     */
     @Parameter(property = "bom.useProjectParentAsParent")
     boolean useProjectParentAsParent;
 
+    /**
+     * Should the generated BOM be attached to project? See {@link #bomClassifier}.
+     * Note: if this parameter is {@code true}, the generated BOM will be attached using given classifier OR
+     * will replace module POM.
+     */
     @Parameter(property = "bom.attach")
     boolean attach;
 
@@ -199,6 +222,7 @@ public class BuildBomMojo extends AbstractMojo {
         this.modelWriter = modelWriter;
     }
 
+    @Override
     public void execute() throws MojoExecutionException {
         getLog().debug("Generating BOM");
         Model model = initializeModel();
@@ -210,10 +234,16 @@ public class BuildBomMojo extends AbstractMojo {
         Path outputFile = Paths.get(mavenProject.getBuild().getDirectory()).resolve(outputFilename);
         modelWriter.writeModel(model, outputFile.toFile());
         if (attach) {
-            DefaultArtifact artifact = new DefaultArtifact(
-                    bomGroupId, bomArtifactId, bomVersion, null, "pom", bomClassifier, new PomArtifactHandler());
-            artifact.setFile(outputFile.toFile());
-            mavenProject.addAttachedArtifact(artifact);
+            if (bomClassifier != null && !bomClassifier.trim().isEmpty()) {
+                getLog().debug("Attaching BOM w/ classifier: " + bomClassifier);
+                DefaultArtifact artifact = new DefaultArtifact(
+                        bomGroupId, bomArtifactId, bomVersion, null, "pom", bomClassifier, new PomArtifactHandler());
+                artifact.setFile(outputFile.toFile());
+                mavenProject.addAttachedArtifact(artifact);
+            } else {
+                getLog().debug("Replacing module POM w/ generated BOM");
+                mavenProject.setFile(outputFile.toFile());
+            }
         }
     }
 
@@ -243,8 +273,12 @@ public class BuildBomMojo extends AbstractMojo {
         pomModel.setVersion(bomVersion);
         pomModel.setPackaging("pom");
 
-        pomModel.setName(bomName);
-        pomModel.setDescription(bomDescription);
+        if (bomName != null) {
+            pomModel.setName(bomName);
+        }
+        if (bomDescription != null) {
+            pomModel.setDescription(bomDescription);
+        }
 
         pomModel.setProperties(new OrderedProperties());
         pomModel.getProperties().setProperty("project.build.sourceEncoding", "UTF-8");

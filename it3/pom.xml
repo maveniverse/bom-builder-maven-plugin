@@ -44,7 +44,7 @@
     <dependency>
       <groupId>org.xmlunit</groupId>
       <artifactId>xmlunit-core</artifactId>
-      <version>2.10.0</version>
+      <version>2.10.2</version>
     </dependency>
   </dependencies>
 
@@ -75,7 +75,7 @@
               <debug>true</debug>
               <goals>
                 <goal>clean</goal>
-                <goal>generate-resources</goal>
+                <goal>install</goal>
               </goals>
               <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
               <pomIncludes>
