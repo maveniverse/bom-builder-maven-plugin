@@ -60,7 +60,7 @@
               <bomGroupId>org.test</bomGroupId>
               <bomArtifactId>junit-bom</bomArtifactId>
               <bomVersion>1.0</bomVersion>
-              <useDependencies>TRANSITIVE_ONLY</useDependencies>
+              <useDependencies>CURRENT_PROJECT_TRANSITIVE_ONLY</useDependencies>
               <dependencyExclusions>
                 <dependencyExclusion>
                   <groupId>org.apache.maven</groupId>
