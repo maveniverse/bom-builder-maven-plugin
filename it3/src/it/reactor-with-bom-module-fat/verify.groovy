@@ -12,5 +12,6 @@ Diff diff = DiffBuilder.compare(expectedFileContents).withTest(fileContents).bui
 def isDifferent = diff.hasDifferences()
 if (isDifferent) {
     System.err.println("Generated " + file.absolutePath + " differs from expected " + expectedFile.absolutePath)
+    System.err.println(diff)
     return false
  }
