@@ -316,10 +316,6 @@ public class BuildBomMojo extends AbstractMojo {
         if (bomDescription != null) {
             pomModel.setDescription(bomDescription);
         }
-
-        pomModel.setProperties(new OrderedProperties());
-        pomModel.getProperties().setProperty("project.build.sourceEncoding", "UTF-8");
-
         return pomModel;
     }
 
@@ -388,7 +384,10 @@ public class BuildBomMojo extends AbstractMojo {
         }
         pomModel.setDependencyManagement(depMgmt);
         if (addVersionProperties) {
-            pomModel.getProperties().putAll(versionProperties);
+            Properties props = pomModel.getProperties();
+            for (String versionKey : versionProperties.stringPropertyNames()) {
+                props.setProperty(versionKey, versionProperties.getProperty(versionKey));
+            }
         }
         getLog().debug("Added " + projectArtifacts.size() + " dependencies.");
     }

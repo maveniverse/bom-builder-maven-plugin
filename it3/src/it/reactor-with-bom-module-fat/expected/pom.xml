@@ -7,7 +7,6 @@
   <version>1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <version.org.slf4j>1.7.36</version.org.slf4j>
     <version.reactor-with-bom-module-fat>1.0-SNAPSHOT</version.reactor-with-bom-module-fat>
   </properties>
