@@ -11,7 +11,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import org.apache.maven.artifact.Artifact;
@@ -353,7 +355,7 @@ public class BuildBomMojo extends AbstractMojo {
         ArrayList<Artifact> projectArtifacts = new ArrayList<>(projectArtifactsSet);
         Collections.sort(projectArtifacts);
 
-        Properties versionProperties = new Properties();
+        LinkedHashMap<String, String> versionProperties = new LinkedHashMap();
         DependencyManagement depMgmt = new DependencyManagement();
         for (Artifact artifact : projectArtifacts) {
             if (isExcludedDependency(artifact)) {
@@ -361,11 +363,11 @@ public class BuildBomMojo extends AbstractMojo {
             }
 
             String versionPropertyName = VERSION_PROPERTY_PREFIX + artifact.getGroupId();
-            if (versionProperties.getProperty(versionPropertyName) != null
-                    && !versionProperties.getProperty(versionPropertyName).equals(artifact.getVersion())) {
+            if (versionProperties.get(versionPropertyName) != null
+                    && !versionProperties.get(versionPropertyName).equals(artifact.getVersion())) {
                 versionPropertyName = VERSION_PROPERTY_PREFIX + artifact.getGroupId() + "." + artifact.getArtifactId();
             }
-            versionProperties.setProperty(versionPropertyName, artifact.getVersion());
+            versionProperties.put(versionPropertyName, artifact.getVersion());
 
             Dependency dep = new Dependency();
             dep.setGroupId(artifact.getGroupId());
@@ -385,8 +387,8 @@ public class BuildBomMojo extends AbstractMojo {
         pomModel.setDependencyManagement(depMgmt);
         if (addVersionProperties) {
             Properties props = pomModel.getProperties();
-            for (String versionKey : versionProperties.stringPropertyNames()) {
-                props.setProperty(versionKey, versionProperties.getProperty(versionKey));
+            for (Map.Entry<String, String> entry : versionProperties.entrySet()) {
+                props.setProperty(entry.getKey(), entry.getValue());
             }
         }
         getLog().debug("Added " + projectArtifacts.size() + " dependencies.");
