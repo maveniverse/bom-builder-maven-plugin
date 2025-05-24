@@ -281,7 +281,8 @@ public class BuildBomMojo extends AbstractMojo {
                 getLog().debug("Replacing module POM w/ generated BOM");
                 mavenProject.setFile(outputFile.toFile());
             } else {
-                throw new MojoExecutionException("Cannot replace project POM: invalid project (packaging=pom w/o modules)");
+                throw new MojoExecutionException(
+                        "Cannot replace project POM: invalid project (packaging=pom w/o modules)");
             }
         }
     }
