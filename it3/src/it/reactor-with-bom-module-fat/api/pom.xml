@@ -16,8 +16,8 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>reactor-with-bom-module</groupId>
-    <artifactId>reactor-with-bom-module</artifactId>
+    <groupId>reactor-with-bom-module-fat</groupId>
+    <artifactId>reactor-with-bom-module-fat</artifactId>
     <version>1.0-SNAPSHOT</version>
   </parent>
 
