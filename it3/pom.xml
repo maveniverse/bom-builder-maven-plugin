@@ -44,7 +44,7 @@
     <dependency>
       <groupId>org.xmlunit</groupId>
       <artifactId>xmlunit-core</artifactId>
-      <version>2.10.0</version>
+      <version>2.10.2</version>
     </dependency>
   </dependencies>
 
@@ -72,10 +72,10 @@
             <configuration>
               <addTestClassPath>true</addTestClassPath>
               <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
-              <debug>true</debug>
+              <debug>false</debug>
               <goals>
                 <goal>clean</goal>
-                <goal>generate-resources</goal>
+                <goal>install</goal>
               </goals>
               <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
               <pomIncludes>

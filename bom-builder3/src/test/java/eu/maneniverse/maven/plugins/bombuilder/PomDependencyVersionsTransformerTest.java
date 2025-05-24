@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 public class PomDependencyVersionsTransformerTest {
     @Test
-    public void testDependencyVersionsAreSpecifiedByProperties() throws Exception {
+    public void testDependencyVersionsAreSpecifiedByProperties() {
         PomDependencyVersionsTransformer transformer = new PomDependencyVersionsTransformer();
         Model pomModel = createPomModel();
         Dependency dependency = createDependency("groupId", "artifactId", "version");
@@ -30,7 +30,7 @@ public class PomDependencyVersionsTransformerTest {
     }
 
     @Test
-    public void testDependencyVersionIsSpecifiedByPropertyWithKeyIncludingArtifactId() throws Exception {
+    public void testDependencyVersionIsSpecifiedByPropertyWithKeyIncludingArtifactId() {
         PomDependencyVersionsTransformer transformer = new PomDependencyVersionsTransformer();
         Model pomModel = createPomModel();
         Dependency dependency1 = createDependency("groupId", "artifactId1", "version1");
@@ -88,7 +88,6 @@ public class PomDependencyVersionsTransformerTest {
         Model model = new Model();
         DependencyManagement dependencyManagement = new DependencyManagement();
         model.setDependencyManagement(dependencyManagement);
-        model.setProperties(new OrderedProperties());
         return model;
     }
 }

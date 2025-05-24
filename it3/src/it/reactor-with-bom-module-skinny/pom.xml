@@ -16,11 +16,26 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>bom-reactor</groupId>
-    <artifactId>bom-reactor</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <groupId>org.apache</groupId>
+    <artifactId>apache</artifactId>
+    <version>33</version>
   </parent>
 
-  <artifactId>child1</artifactId>
+  <groupId>reactor-with-bom-module-skinny</groupId>
+  <artifactId>reactor-with-bom-module-skinny</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
 
+  <name>Test to create reactor bom</name>
+
+  <modules>
+    <module>api</module>
+    <module>impl</module>
+    <module>bom</module>
+  </modules>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <version.slf4j>1.7.36</version.slf4j>
+  </properties>
 </project>

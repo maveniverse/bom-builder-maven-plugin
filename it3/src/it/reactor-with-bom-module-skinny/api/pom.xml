@@ -16,11 +16,19 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>bom-reactor</groupId>
-    <artifactId>bom-reactor</artifactId>
+    <groupId>reactor-with-bom-module-skinny</groupId>
+    <artifactId>reactor-with-bom-module-skinny</artifactId>
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>child1</artifactId>
+  <artifactId>api</artifactId>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${version.slf4j}</version>
+    </dependency>
+  </dependencies>
 
 </project>

@@ -11,7 +11,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import org.apache.maven.artifact.Artifact;
@@ -47,40 +49,47 @@ public class BuildBomMojo extends AbstractMojo {
     private static final String VERSION_PROPERTY_PREFIX = "version.";
 
     /**
-     * BOM parent GAV
+     * BOM parent GAV, in form for {@code G:A:V}. If specified, the GAV will be set as parent of generated BOM.
+     * See also {@link #useProjectParentAsParent}.
      */
     @Parameter
     private String bomParentGav;
 
     /**
-     * BOM groupId
+     * BOM groupId, by default current project groupId.
      */
     @Parameter(required = true, property = "bom.groupId", defaultValue = "${project.groupId}")
     private String bomGroupId;
 
     /**
-     * BOM artifactId
+     * BOM artifactId, by default current project artifactId.
      */
     @Parameter(required = true, property = "bom.artifactId", defaultValue = "${project.artifactId}")
     private String bomArtifactId;
 
     /**
-     * BOM version
+     * BOM version, by default current project version.
      */
     @Parameter(required = true, property = "bom.version", defaultValue = "${project.version}")
     private String bomVersion;
 
     /**
-     * BOM classifier
-     */
-    @Parameter(required = true, property = "bom.classifier", defaultValue = "bom")
-    private String bomClassifier;
-
-    /**
-     * BOM name
+     * BOM name.
      */
     @Parameter(property = "bom.name")
     private String bomName;
+
+    /**
+     * BOM description.
+     */
+    @Parameter(property = "bom.description")
+    private String bomDescription;
+
+    /**
+     * BOM classifier, optional. If not specified, and {@link #attach} is set, will <em>replace current module POM</em>.
+     */
+    @Parameter(property = "bom.classifier")
+    private String bomClassifier;
 
     /**
      * Whether to add collected versions to BOM properties
@@ -91,13 +100,16 @@ public class BuildBomMojo extends AbstractMojo {
     private boolean addVersionProperties;
 
     /**
-     * BOM description
+     * Whether to use properties to specify dependency versions in BOM. This will also add properties to BOM with
+     * dependency versions.
+     *
+     * @see #addVersionProperties
      */
-    @Parameter
-    private String bomDescription;
+    @Parameter(property = "bom.usePropertiesForVersion")
+    boolean usePropertiesForVersion;
 
     /**
-     * BOM output file
+     * BOM output file. If relative, is resolved from {@code ${project.build}} directory.
      */
     @Parameter(defaultValue = "bom-pom.xml")
     String outputFilename;
@@ -111,19 +123,20 @@ public class BuildBomMojo extends AbstractMojo {
     private List<BomExclusion> exclusions;
 
     /**
-     * List of dependencies which should not be added to BOM
+     * List of dependencies which should be excluded from BOM.
      */
     @Parameter
     private List<DependencyExclusion> dependencyExclusions;
 
     /**
-     * Whether to use properties to specify dependency versions in BOM. This will also add properties to BOM with
-     * dependency versions.
+     * The scope of dependencies getting into BOM.
      *
-     * @see #addVersionProperties
+     * @since 1.1.0
      */
-    @Parameter(property = "bom.usePropertiesForVersion")
-    boolean usePropertiesForVersion;
+    public enum Scope {
+        REACTOR,
+        CURRENT_PROJECT
+    }
 
     /**
      * Modes to control dependencies getting into BOM.
@@ -131,24 +144,37 @@ public class BuildBomMojo extends AbstractMojo {
      * @since 1.0.2
      */
     public enum UseDependencies {
-        PROJECT_ONLY(true, false, false),
-        DIRECT_ONLY(false, true, false),
-        TRANSITIVE_ONLY(false, false, true),
-        PROJECT_AND_DIRECT(true, true, false),
-        PROJECT_AND_TRANSITIVE(true, false, true);
+        REACTOR_ONLY(Scope.REACTOR, true, false, false),
+        REACTOR_DIRECT_ONLY(Scope.REACTOR, false, true, false),
+        REACTOR_TRANSITIVE_ONLY(Scope.REACTOR, false, false, true),
+        REACTOR_AND_DIRECT(Scope.REACTOR, true, true, false),
+        REACTOR_AND_TRANSITIVE(Scope.REACTOR, true, false, true),
 
-        private final boolean project;
+        CURRENT_PROJECT_ONLY(Scope.CURRENT_PROJECT, true, false, false),
+        CURRENT_PROJECT_DIRECT_ONLY(Scope.CURRENT_PROJECT, false, true, false),
+        CURRENT_PROJECT_TRANSITIVE_ONLY(Scope.CURRENT_PROJECT, false, false, true),
+        CURRENT_PROJECT_AND_DIRECT(Scope.CURRENT_PROJECT, true, true, false),
+        CURRENT_PROJECT_AND_TRANSITIVE(Scope.CURRENT_PROJECT, true, false, true);
+
+        private final Scope scope;
+        private final boolean scopeDependencies;
         private final boolean directDependencies;
         private final boolean transitiveDependencies;
 
-        UseDependencies(boolean project, boolean directDependencies, boolean transitiveDependencies) {
-            this.project = project;
+        UseDependencies(
+                Scope scope, boolean scopeDependencies, boolean directDependencies, boolean transitiveDependencies) {
+            this.scope = scope;
+            this.scopeDependencies = scopeDependencies;
             this.directDependencies = directDependencies;
             this.transitiveDependencies = transitiveDependencies;
         }
 
-        public boolean isProject() {
-            return project;
+        public Scope scope() {
+            return scope;
+        }
+
+        public boolean scopeDependencies() {
+            return scopeDependencies;
         }
 
         public boolean isDirectDependencies() {
@@ -160,15 +186,48 @@ public class BuildBomMojo extends AbstractMojo {
         }
     }
 
-    @Parameter(property = "bom.useDependencies", defaultValue = "PROJECT_ONLY")
+    /**
+     * What dependencies should generated BOM contain?
+     * <ul>
+     *     <li>"REACTOR_ONLY" will contain only the reactor artifacts (aka "skinny" BOM)</li>
+     *     <li>"REACTOR_DIRECT_ONLY" will contain only the direct dependencies of reactor</li>
+     *     <li>"REACTOR_TRANSITIVE_ONLY" will contain only the direct and their transitive dependencies of reactor</li>
+     *     <li>"REACTOR_AND_DIRECT" will contain only the reactor and their direct dependencies</li>
+     *     <li>"REACTOR_AND_TRANSITIVE" will contain reactor, direct and their transitive dependencies (aka "fat" BOM)</li>
+     *     <li>"CURRENT_PROJECT_ONLY" will contain only the project artifact</li>
+     *     <li>"CURRENT_PROJECT_DIRECT_ONLY" will contain only the direct dependencies of project</li>
+     *     <li>"CURRENT_PROJECT_TRANSITIVE_ONLY" will contain only the direct and its transitive dependencies of project</li>
+     *     <li>"CURRENT_PROJECT_AND_DIRECT" will contain only the project and its direct dependencies</li>
+     *     <li>"CURRENT_PROJECT_AND_TRANSITIVE" will contain project, direct and its transitive dependencies</li>
+     * </ul>
+     */
+    @Parameter(property = "bom.useDependencies", defaultValue = "REACTOR_ONLY")
     UseDependencies useDependencies;
 
+    /**
+     * Whether generated BOM contain reactor artifacts with packaging "pom" as well, when a {@link #useDependencies}
+     * value is set that pulls in reactor artifacts.
+     */
     @Parameter(property = "bom.includePoms")
     boolean includePoms;
 
+    /**
+     * Should the generated BOM use project parent, if applicable, as parent? Ignored if {@link #bomParentGav} specified.
+     */
     @Parameter(property = "bom.useProjectParentAsParent")
     boolean useProjectParentAsParent;
 
+    /**
+     * Should the generated BOM be attached to project? See {@link #bomClassifier}.
+     * Note: if this parameter is {@code true}, the generated BOM will be attached using given classifier OR
+     * will replace module POM. To replace, the project must fulfil certain requirements:
+     * <ul>
+     *     <li>The project must have packaging "pom"</li>
+     *     <li>The project must NOT have subprojects (modules)</li>
+     * </ul>
+     * In case {@link #bomClassifier} is not set, and current project does not fulfil these requirements, the mojo
+     * will fail the build.
+     */
     @Parameter(property = "bom.attach")
     boolean attach;
 
@@ -199,6 +258,7 @@ public class BuildBomMojo extends AbstractMojo {
         this.modelWriter = modelWriter;
     }
 
+    @Override
     public void execute() throws MojoExecutionException {
         getLog().debug("Generating BOM");
         Model model = initializeModel();
@@ -210,10 +270,20 @@ public class BuildBomMojo extends AbstractMojo {
         Path outputFile = Paths.get(mavenProject.getBuild().getDirectory()).resolve(outputFilename);
         modelWriter.writeModel(model, outputFile.toFile());
         if (attach) {
-            DefaultArtifact artifact = new DefaultArtifact(
-                    bomGroupId, bomArtifactId, bomVersion, null, "pom", bomClassifier, new PomArtifactHandler());
-            artifact.setFile(outputFile.toFile());
-            mavenProject.addAttachedArtifact(artifact);
+            if (bomClassifier != null && !bomClassifier.trim().isEmpty()) {
+                getLog().debug("Attaching BOM w/ classifier: " + bomClassifier);
+                DefaultArtifact artifact = new DefaultArtifact(
+                        bomGroupId, bomArtifactId, bomVersion, null, "pom", bomClassifier, new PomArtifactHandler());
+                artifact.setFile(outputFile.toFile());
+                mavenProject.addAttachedArtifact(artifact);
+            } else if (Objects.equals("pom", mavenProject.getPackaging())
+                    && mavenProject.getModules().isEmpty()) {
+                getLog().debug("Replacing module POM w/ generated BOM");
+                mavenProject.setFile(outputFile.toFile());
+            } else {
+                throw new MojoExecutionException(
+                        "Cannot replace project POM: invalid project (packaging=pom w/o modules)");
+            }
         }
     }
 
@@ -243,36 +313,50 @@ public class BuildBomMojo extends AbstractMojo {
         pomModel.setVersion(bomVersion);
         pomModel.setPackaging("pom");
 
-        pomModel.setName(bomName);
-        pomModel.setDescription(bomDescription);
-
-        pomModel.setProperties(new OrderedProperties());
-        pomModel.getProperties().setProperty("project.build.sourceEncoding", "UTF-8");
-
+        if (bomName != null) {
+            pomModel.setName(bomName);
+        }
+        if (bomDescription != null) {
+            pomModel.setDescription(bomDescription);
+        }
         return pomModel;
     }
 
     private void addDependencyManagement(Model pomModel) {
         HashSet<Artifact> projectArtifactsSet = new HashSet<>();
-        if (useDependencies.isProject()) {
+        if (useDependencies.scope() == Scope.CURRENT_PROJECT) {
+            if (useDependencies.scopeDependencies()
+                    && (includePoms || !"pom".equals(mavenProject.getArtifact().getType()))) {
+                projectArtifactsSet.add(mavenProject.getArtifact());
+            }
+            if (useDependencies.isDirectDependencies()) {
+                projectArtifactsSet.addAll(mavenProject.getDependencyArtifacts());
+            }
+            if (useDependencies.isTransitiveDependencies()) {
+                mavenProject.setArtifactFilter(a -> true);
+                projectArtifactsSet.addAll(mavenProject.getArtifacts());
+            }
+        } else if (useDependencies.scope() == Scope.REACTOR) {
             for (MavenProject prj : allProjects) {
-                if (includePoms || !"pom".equals(prj.getArtifact().getType())) {
+                if (useDependencies.scopeDependencies()
+                        && (includePoms || !"pom".equals(prj.getArtifact().getType()))) {
                     projectArtifactsSet.add(prj.getArtifact());
                 }
+                if (useDependencies.isDirectDependencies()) {
+                    projectArtifactsSet.addAll(prj.getDependencyArtifacts());
+                }
+                if (useDependencies.isTransitiveDependencies()) {
+                    prj.setArtifactFilter(a -> true);
+                    projectArtifactsSet.addAll(prj.getArtifacts());
+                }
             }
-        }
-        if (useDependencies.isDirectDependencies()) {
-            projectArtifactsSet.addAll(mavenProject.getDependencyArtifacts());
-        }
-        if (useDependencies.isTransitiveDependencies()) {
-            projectArtifactsSet.addAll(mavenProject.getArtifacts());
         }
 
         // Sort the artifacts for readability
         ArrayList<Artifact> projectArtifacts = new ArrayList<>(projectArtifactsSet);
         Collections.sort(projectArtifacts);
 
-        Properties versionProperties = new Properties();
+        LinkedHashMap<String, String> versionProperties = new LinkedHashMap();
         DependencyManagement depMgmt = new DependencyManagement();
         for (Artifact artifact : projectArtifacts) {
             if (isExcludedDependency(artifact)) {
@@ -280,11 +364,11 @@ public class BuildBomMojo extends AbstractMojo {
             }
 
             String versionPropertyName = VERSION_PROPERTY_PREFIX + artifact.getGroupId();
-            if (versionProperties.getProperty(versionPropertyName) != null
-                    && !versionProperties.getProperty(versionPropertyName).equals(artifact.getVersion())) {
+            if (versionProperties.get(versionPropertyName) != null
+                    && !versionProperties.get(versionPropertyName).equals(artifact.getVersion())) {
                 versionPropertyName = VERSION_PROPERTY_PREFIX + artifact.getGroupId() + "." + artifact.getArtifactId();
             }
-            versionProperties.setProperty(versionPropertyName, artifact.getVersion());
+            versionProperties.put(versionPropertyName, artifact.getVersion());
 
             Dependency dep = new Dependency();
             dep.setGroupId(artifact.getGroupId());
@@ -303,7 +387,10 @@ public class BuildBomMojo extends AbstractMojo {
         }
         pomModel.setDependencyManagement(depMgmt);
         if (addVersionProperties) {
-            pomModel.getProperties().putAll(versionProperties);
+            Properties props = pomModel.getProperties();
+            for (Map.Entry<String, String> entry : versionProperties.entrySet()) {
+                props.setProperty(entry.getKey(), entry.getValue());
+            }
         }
         getLog().debug("Added " + projectArtifacts.size() + " dependencies.");
     }

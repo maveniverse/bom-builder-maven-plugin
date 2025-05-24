@@ -1,26 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.apache</groupId>
-    <artifactId>apache</artifactId>
-    <version>33</version>
-  </parent>
-  <groupId>bom-reactor</groupId>
-  <artifactId>bom-reactor</artifactId>
+  <groupId>reactor-with-bom-module-skinny</groupId>
+  <artifactId>bom</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>bom-reactor</groupId>
-        <artifactId>child1</artifactId>
+        <groupId>reactor-with-bom-module-skinny</groupId>
+        <artifactId>api</artifactId>
         <version>1.0-SNAPSHOT</version>
       </dependency>
       <dependency>
-        <groupId>bom-reactor</groupId>
-        <artifactId>child2</artifactId>
+        <groupId>reactor-with-bom-module-skinny</groupId>
+        <artifactId>impl</artifactId>
         <version>1.0-SNAPSHOT</version>
       </dependency>
     </dependencies>

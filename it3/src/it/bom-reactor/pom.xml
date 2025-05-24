@@ -21,8 +21,8 @@
     <version>33</version>
   </parent>
 
-  <groupId>test</groupId>
-  <artifactId>basic-bom</artifactId>
+  <groupId>bom-reactor</groupId>
+  <artifactId>bom-reactor</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
@@ -51,6 +51,7 @@
             </goals>
             <configuration>
               <attach>true</attach>
+              <bomClassifier>bom</bomClassifier>
               <useProjectParentAsParent>true</useProjectParentAsParent>
             </configuration>
           </execution>

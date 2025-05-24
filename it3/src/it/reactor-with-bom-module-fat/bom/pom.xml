@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2013 Red Hat, Inc
-  ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
   ~ You may obtain a copy of the License at
@@ -14,34 +12,17 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>bom-with-version-properties</groupId>
-  <artifactId>bom-with-version-properties</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <parent>
+    <groupId>reactor-with-bom-module-fat</groupId>
+    <artifactId>reactor-with-bom-module-fat</artifactId>
+    <version>1.0-SNAPSHOT</version>
+  </parent>
 
-  <name>Test to create basic bom</name>
-
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-artifact</artifactId>
-      <version>3.0</version>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.8</version>
-    </dependency>
-  </dependencies>
+  <artifactId>bom</artifactId>
+  <packaging>pom</packaging>
 
   <build>
     <plugins>
@@ -56,12 +37,10 @@
               <goal>build-bom</goal>
             </goals>
             <configuration>
-              <outputFilename>pom.xml</outputFilename>
-              <bomGroupId>org.test</bomGroupId>
-              <bomArtifactId>junit-bom</bomArtifactId>
-              <bomVersion>1.0</bomVersion>
+              <attach>true</attach>
+              <addVersionProperties>true</addVersionProperties>
               <usePropertiesForVersion>true</usePropertiesForVersion>
-              <useDependencies>CURRENT_PROJECT_TRANSITIVE_ONLY</useDependencies>
+              <useDependencies>REACTOR_AND_TRANSITIVE</useDependencies>
             </configuration>
           </execution>
         </executions>

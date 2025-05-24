@@ -1,7 +1,6 @@
 import org.xmlunit.builder.DiffBuilder
 import org.xmlunit.diff.Diff
 
-def name = "bom-with-excluded-dependency"
 File file = new File(basedir, "target/pom.xml")
 File expectedFile = new File(basedir, "expected/pom.xml")
 
