@@ -334,6 +334,7 @@ public class BuildBomMojo extends AbstractMojo {
                 projectArtifactsSet.addAll(mavenProject.getDependencyArtifacts());
             }
             if (useDependencies.isTransitiveDependencies()) {
+                mavenProject.setArtifactFilter(a -> true);
                 projectArtifactsSet.addAll(mavenProject.getArtifacts());
             }
         } else if (useDependencies.scope() == Scope.REACTOR) {
@@ -346,6 +347,7 @@ public class BuildBomMojo extends AbstractMojo {
                     projectArtifactsSet.addAll(prj.getDependencyArtifacts());
                 }
                 if (useDependencies.isTransitiveDependencies()) {
+                    prj.setArtifactFilter(a -> true);
                     projectArtifactsSet.addAll(prj.getArtifacts());
                 }
             }
