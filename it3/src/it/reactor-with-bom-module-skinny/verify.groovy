@@ -1,7 +1,6 @@
 import org.xmlunit.builder.DiffBuilder
 import org.xmlunit.diff.Diff
 
-def name = "bom-reactor"
 File file = new File(basedir, "bom/target/bom-pom.xml")
 File expectedFile = new File(basedir, "expected/pom.xml")
 
