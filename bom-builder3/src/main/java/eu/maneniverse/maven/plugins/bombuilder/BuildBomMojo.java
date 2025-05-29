@@ -141,18 +141,24 @@ public class BuildBomMojo extends AbstractMojo {
 
     /**
      * The projects of the reactor to be included in generated BOM.
+     *
+     * @since 1.1.1
      */
     @Parameter(property = "bom.reactorDependencies", defaultValue = "REACTOR")
     Scope reactorDependencies;
 
     /**
      * The direct dependencies to be included in generated BOM.
+     *
+     * @since 1.1.1
      */
     @Parameter(property = "bom.directDependencies", defaultValue = "NONE")
     Scope directDependencies;
 
     /**
      * The transitive dependencies to be included in generated BOM.
+     *
+     * @since 1.1.1
      */
     @Parameter(property = "bom.transitiveDependencies", defaultValue = "NONE")
     Scope transitiveDependencies;
@@ -301,12 +307,12 @@ public class BuildBomMojo extends AbstractMojo {
         if (transitiveDependencies == Scope.REACTOR) {
             for (MavenProject prj : allProjects) {
                 if (includePoms || !"pom".equals(prj.getArtifact().getType())) {
-                    prj.setArtifactFilter(a -> true);
+                    prj.setArtifactFilter(a -> !"test".equals(a.getScope()));
                     projectArtifactsSet.addAll(prj.getArtifacts());
                 }
             }
         } else if (transitiveDependencies == Scope.CURRENT_PROJECT) {
-            mavenProject.setArtifactFilter(a -> true);
+            mavenProject.setArtifactFilter(a -> !"test".equals(a.getScope()));
             projectArtifactsSet.addAll(mavenProject.getArtifacts());
         }
 
@@ -314,7 +320,7 @@ public class BuildBomMojo extends AbstractMojo {
         ArrayList<Artifact> projectArtifacts = new ArrayList<>(projectArtifactsSet);
         Collections.sort(projectArtifacts);
 
-        LinkedHashMap<String, String> versionProperties = new LinkedHashMap();
+        LinkedHashMap<String, String> versionProperties = new LinkedHashMap<>();
         DependencyManagement depMgmt = new DependencyManagement();
         for (Artifact artifact : projectArtifacts) {
             if (isExcludedDependency(artifact)) {
