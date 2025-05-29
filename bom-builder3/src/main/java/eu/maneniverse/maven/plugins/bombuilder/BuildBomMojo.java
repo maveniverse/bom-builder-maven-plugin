@@ -134,78 +134,31 @@ public class BuildBomMojo extends AbstractMojo {
      * @since 1.1.0
      */
     public enum Scope {
+        NONE,
         REACTOR,
         CURRENT_PROJECT
     }
 
     /**
-     * Modes to control dependencies getting into BOM.
-     *
-     * @since 1.0.2
+     * The projects of the reactor to be included in generated BOM.
      */
-    public enum UseDependencies {
-        REACTOR_ONLY(Scope.REACTOR, true, false, false),
-        REACTOR_DIRECT_ONLY(Scope.REACTOR, false, true, false),
-        REACTOR_TRANSITIVE_ONLY(Scope.REACTOR, false, false, true),
-        REACTOR_AND_DIRECT(Scope.REACTOR, true, true, false),
-        REACTOR_AND_TRANSITIVE(Scope.REACTOR, true, false, true),
-
-        CURRENT_PROJECT_ONLY(Scope.CURRENT_PROJECT, true, false, false),
-        CURRENT_PROJECT_DIRECT_ONLY(Scope.CURRENT_PROJECT, false, true, false),
-        CURRENT_PROJECT_TRANSITIVE_ONLY(Scope.CURRENT_PROJECT, false, false, true),
-        CURRENT_PROJECT_AND_DIRECT(Scope.CURRENT_PROJECT, true, true, false),
-        CURRENT_PROJECT_AND_TRANSITIVE(Scope.CURRENT_PROJECT, true, false, true);
-
-        private final Scope scope;
-        private final boolean scopeDependencies;
-        private final boolean directDependencies;
-        private final boolean transitiveDependencies;
-
-        UseDependencies(
-                Scope scope, boolean scopeDependencies, boolean directDependencies, boolean transitiveDependencies) {
-            this.scope = scope;
-            this.scopeDependencies = scopeDependencies;
-            this.directDependencies = directDependencies;
-            this.transitiveDependencies = transitiveDependencies;
-        }
-
-        public Scope scope() {
-            return scope;
-        }
-
-        public boolean scopeDependencies() {
-            return scopeDependencies;
-        }
-
-        public boolean isDirectDependencies() {
-            return directDependencies;
-        }
-
-        public boolean isTransitiveDependencies() {
-            return transitiveDependencies;
-        }
-    }
+    @Parameter(property = "bom.reactorDependencies", defaultValue = "REACTOR")
+    Scope reactorDependencies;
 
     /**
-     * What dependencies should generated BOM contain?
-     * <ul>
-     *     <li>"REACTOR_ONLY" will contain only the reactor artifacts (aka "skinny" BOM)</li>
-     *     <li>"REACTOR_DIRECT_ONLY" will contain only the direct dependencies of reactor</li>
-     *     <li>"REACTOR_TRANSITIVE_ONLY" will contain only the direct and their transitive dependencies of reactor</li>
-     *     <li>"REACTOR_AND_DIRECT" will contain only the reactor and their direct dependencies</li>
-     *     <li>"REACTOR_AND_TRANSITIVE" will contain reactor, direct and their transitive dependencies (aka "fat" BOM)</li>
-     *     <li>"CURRENT_PROJECT_ONLY" will contain only the project artifact</li>
-     *     <li>"CURRENT_PROJECT_DIRECT_ONLY" will contain only the direct dependencies of project</li>
-     *     <li>"CURRENT_PROJECT_TRANSITIVE_ONLY" will contain only the direct and its transitive dependencies of project</li>
-     *     <li>"CURRENT_PROJECT_AND_DIRECT" will contain only the project and its direct dependencies</li>
-     *     <li>"CURRENT_PROJECT_AND_TRANSITIVE" will contain project, direct and its transitive dependencies</li>
-     * </ul>
+     * The direct dependencies to be included in generated BOM.
      */
-    @Parameter(property = "bom.useDependencies", defaultValue = "REACTOR_ONLY")
-    UseDependencies useDependencies;
+    @Parameter(property = "bom.directDependencies", defaultValue = "NONE")
+    Scope directDependencies;
 
     /**
-     * Whether generated BOM contain reactor artifacts with packaging "pom" as well, when a {@link #useDependencies}
+     * The transitive dependencies to be included in generated BOM.
+     */
+    @Parameter(property = "bom.transitiveDependencies", defaultValue = "NONE")
+    Scope transitiveDependencies;
+
+    /**
+     * Whether generated BOM contain reactor artifacts with packaging "pom" as well, when a {@link #reactorDependencies}
      * value is set that pulls in reactor artifacts.
      */
     @Parameter(property = "bom.includePoms")
@@ -324,32 +277,37 @@ public class BuildBomMojo extends AbstractMojo {
 
     private void addDependencyManagement(Model pomModel) {
         HashSet<Artifact> projectArtifactsSet = new HashSet<>();
-        if (useDependencies.scope() == Scope.CURRENT_PROJECT) {
-            if (useDependencies.scopeDependencies()
-                    && (includePoms || !"pom".equals(mavenProject.getArtifact().getType()))) {
-                projectArtifactsSet.add(mavenProject.getArtifact());
-            }
-            if (useDependencies.isDirectDependencies()) {
-                projectArtifactsSet.addAll(mavenProject.getDependencyArtifacts());
-            }
-            if (useDependencies.isTransitiveDependencies()) {
-                mavenProject.setArtifactFilter(a -> true);
-                projectArtifactsSet.addAll(mavenProject.getArtifacts());
-            }
-        } else if (useDependencies.scope() == Scope.REACTOR) {
+        if (reactorDependencies == Scope.REACTOR) {
             for (MavenProject prj : allProjects) {
-                if (useDependencies.scopeDependencies()
-                        && (includePoms || !"pom".equals(prj.getArtifact().getType()))) {
+                if (includePoms || !"pom".equals(prj.getArtifact().getType())) {
                     projectArtifactsSet.add(prj.getArtifact());
                 }
-                if (useDependencies.isDirectDependencies()) {
+            }
+        } else if (reactorDependencies == Scope.CURRENT_PROJECT
+                && (includePoms || !"pom".equals(mavenProject.getArtifact().getType()))) {
+            projectArtifactsSet.add(mavenProject.getArtifact());
+        }
+
+        if (directDependencies == Scope.REACTOR) {
+            for (MavenProject prj : allProjects) {
+                if (includePoms || !"pom".equals(prj.getArtifact().getType())) {
                     projectArtifactsSet.addAll(prj.getDependencyArtifacts());
                 }
-                if (useDependencies.isTransitiveDependencies()) {
+            }
+        } else if (directDependencies == Scope.CURRENT_PROJECT) {
+            projectArtifactsSet.addAll(mavenProject.getDependencyArtifacts());
+        }
+
+        if (transitiveDependencies == Scope.REACTOR) {
+            for (MavenProject prj : allProjects) {
+                if (includePoms || !"pom".equals(prj.getArtifact().getType())) {
                     prj.setArtifactFilter(a -> true);
                     projectArtifactsSet.addAll(prj.getArtifacts());
                 }
             }
+        } else if (transitiveDependencies == Scope.CURRENT_PROJECT) {
+            mavenProject.setArtifactFilter(a -> true);
+            projectArtifactsSet.addAll(mavenProject.getArtifacts());
         }
 
         // Sort the artifacts for readability
