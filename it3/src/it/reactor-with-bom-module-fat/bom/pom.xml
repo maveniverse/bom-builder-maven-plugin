@@ -40,7 +40,8 @@
               <attach>true</attach>
               <addVersionProperties>true</addVersionProperties>
               <usePropertiesForVersion>true</usePropertiesForVersion>
-              <useDependencies>REACTOR_AND_TRANSITIVE</useDependencies>
+              <reactorDependencies>REACTOR</reactorDependencies>
+              <transitiveDependencies>REACTOR</transitiveDependencies>
             </configuration>
           </execution>
         </executions>

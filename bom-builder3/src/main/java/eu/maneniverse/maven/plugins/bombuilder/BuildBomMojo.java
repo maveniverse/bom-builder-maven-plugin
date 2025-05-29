@@ -37,7 +37,12 @@ import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.plexus.util.StringUtils;
 
 /**
- * Build a BOM based on the dependencies in a GAV
+ * Generates a BOM based on the project/reactor and dependencies. The generated BOM may be attached to project w/
+ * classifier (for Maven 4 consumers) or it may replace a given subproject POM (if it is packaging=pom and
+ * have no subprojects).
+ * <p>
+ * This Mojo is affected if it needs "whole reactor"
+ * but reactor is limited in any way (ie -r or alike option used).
  */
 @Mojo(
         name = "build-bom",
@@ -92,7 +97,7 @@ public class BuildBomMojo extends AbstractMojo {
     private String bomClassifier;
 
     /**
-     * Whether to add collected versions to BOM properties
+     * Whether to add collected versions to BOM properties.
      *
      * @see #usePropertiesForVersion
      */
@@ -134,78 +139,54 @@ public class BuildBomMojo extends AbstractMojo {
      * @since 1.1.0
      */
     public enum Scope {
+        NONE,
         REACTOR,
         CURRENT_PROJECT
     }
 
     /**
-     * Modes to control dependencies getting into BOM.
-     *
-     * @since 1.0.2
-     */
-    public enum UseDependencies {
-        REACTOR_ONLY(Scope.REACTOR, true, false, false),
-        REACTOR_DIRECT_ONLY(Scope.REACTOR, false, true, false),
-        REACTOR_TRANSITIVE_ONLY(Scope.REACTOR, false, false, true),
-        REACTOR_AND_DIRECT(Scope.REACTOR, true, true, false),
-        REACTOR_AND_TRANSITIVE(Scope.REACTOR, true, false, true),
-
-        CURRENT_PROJECT_ONLY(Scope.CURRENT_PROJECT, true, false, false),
-        CURRENT_PROJECT_DIRECT_ONLY(Scope.CURRENT_PROJECT, false, true, false),
-        CURRENT_PROJECT_TRANSITIVE_ONLY(Scope.CURRENT_PROJECT, false, false, true),
-        CURRENT_PROJECT_AND_DIRECT(Scope.CURRENT_PROJECT, true, true, false),
-        CURRENT_PROJECT_AND_TRANSITIVE(Scope.CURRENT_PROJECT, true, false, true);
-
-        private final Scope scope;
-        private final boolean scopeDependencies;
-        private final boolean directDependencies;
-        private final boolean transitiveDependencies;
-
-        UseDependencies(
-                Scope scope, boolean scopeDependencies, boolean directDependencies, boolean transitiveDependencies) {
-            this.scope = scope;
-            this.scopeDependencies = scopeDependencies;
-            this.directDependencies = directDependencies;
-            this.transitiveDependencies = transitiveDependencies;
-        }
-
-        public Scope scope() {
-            return scope;
-        }
-
-        public boolean scopeDependencies() {
-            return scopeDependencies;
-        }
-
-        public boolean isDirectDependencies() {
-            return directDependencies;
-        }
-
-        public boolean isTransitiveDependencies() {
-            return transitiveDependencies;
-        }
-    }
-
-    /**
-     * What dependencies should generated BOM contain?
+     * The projects of the reactor to be included in generated BOM. Possible values and their meaning:
      * <ul>
-     *     <li>"REACTOR_ONLY" will contain only the reactor artifacts (aka "skinny" BOM)</li>
-     *     <li>"REACTOR_DIRECT_ONLY" will contain only the direct dependencies of reactor</li>
-     *     <li>"REACTOR_TRANSITIVE_ONLY" will contain only the direct and their transitive dependencies of reactor</li>
-     *     <li>"REACTOR_AND_DIRECT" will contain only the reactor and their direct dependencies</li>
-     *     <li>"REACTOR_AND_TRANSITIVE" will contain reactor, direct and their transitive dependencies (aka "fat" BOM)</li>
-     *     <li>"CURRENT_PROJECT_ONLY" will contain only the project artifact</li>
-     *     <li>"CURRENT_PROJECT_DIRECT_ONLY" will contain only the direct dependencies of project</li>
-     *     <li>"CURRENT_PROJECT_TRANSITIVE_ONLY" will contain only the direct and its transitive dependencies of project</li>
-     *     <li>"CURRENT_PROJECT_AND_DIRECT" will contain only the project and its direct dependencies</li>
-     *     <li>"CURRENT_PROJECT_AND_TRANSITIVE" will contain project, direct and its transitive dependencies</li>
+     *     <li>NONE - will result that no reactor project are included in BOM.</li>
+     *     <li>REACTOR - will include whole reactor into BOM. <em>Warning: if reactor is any way "limited", it will affect this mojo output!</em></li>
+     *     <li>CURRENT_PROJECT - will include only current project into BOM.</li>
      * </ul>
+     *
+     * Note: see also {@link #includePoms}.
+     *
+     * @since 1.1.1
      */
-    @Parameter(property = "bom.useDependencies", defaultValue = "REACTOR_ONLY")
-    UseDependencies useDependencies;
+    @Parameter(property = "bom.reactorDependencies", defaultValue = "REACTOR")
+    Scope reactorDependencies;
 
     /**
-     * Whether generated BOM contain reactor artifacts with packaging "pom" as well, when a {@link #useDependencies}
+     * The direct dependencies to be included in generated BOM. Possible values and their meaning:
+     * <ul>
+     *     <li>NONE - will result that no direct dependencies are included in BOM.</li>
+     *     <li>REACTOR - will include whole reactor direct dependencies into BOM. <em>Warning: if reactor is any way "limited", it will affect this mojo output!</em></li>
+     *     <li>CURRENT_PROJECT - will include direct dependencies of only current project into BOM.</li>
+     * </ul>
+     *
+     * @since 1.1.1
+     */
+    @Parameter(property = "bom.directDependencies", defaultValue = "NONE")
+    Scope directDependencies;
+
+    /**
+     * The transitive dependencies to be included in generated BOM. Possible values and their meaning:
+     * <ul>
+     *     <li>NONE - will result that no transitive dependencies are included in BOM.</li>
+     *     <li>REACTOR - will include whole reactor transitive dependencies into BOM. <em>Warning: if reactor is any way "limited", it will affect this mojo output!</em></li>
+     *     <li>CURRENT_PROJECT - will include transitive dependencies of only current project into BOM.</li>
+     * </ul>
+     *
+     * @since 1.1.1
+     */
+    @Parameter(property = "bom.transitiveDependencies", defaultValue = "NONE")
+    Scope transitiveDependencies;
+
+    /**
+     * Whether generated BOM contain reactor artifacts with packaging "pom" as well, when a {@link #reactorDependencies}
      * value is set that pulls in reactor artifacts.
      */
     @Parameter(property = "bom.includePoms")
@@ -324,39 +305,44 @@ public class BuildBomMojo extends AbstractMojo {
 
     private void addDependencyManagement(Model pomModel) {
         HashSet<Artifact> projectArtifactsSet = new HashSet<>();
-        if (useDependencies.scope() == Scope.CURRENT_PROJECT) {
-            if (useDependencies.scopeDependencies()
-                    && (includePoms || !"pom".equals(mavenProject.getArtifact().getType()))) {
-                projectArtifactsSet.add(mavenProject.getArtifact());
-            }
-            if (useDependencies.isDirectDependencies()) {
-                projectArtifactsSet.addAll(mavenProject.getDependencyArtifacts());
-            }
-            if (useDependencies.isTransitiveDependencies()) {
-                mavenProject.setArtifactFilter(a -> true);
-                projectArtifactsSet.addAll(mavenProject.getArtifacts());
-            }
-        } else if (useDependencies.scope() == Scope.REACTOR) {
+        if (reactorDependencies == Scope.REACTOR) {
             for (MavenProject prj : allProjects) {
-                if (useDependencies.scopeDependencies()
-                        && (includePoms || !"pom".equals(prj.getArtifact().getType()))) {
+                if (includePoms || !"pom".equals(prj.getArtifact().getType())) {
                     projectArtifactsSet.add(prj.getArtifact());
                 }
-                if (useDependencies.isDirectDependencies()) {
+            }
+        } else if (reactorDependencies == Scope.CURRENT_PROJECT
+                && (includePoms || !"pom".equals(mavenProject.getArtifact().getType()))) {
+            projectArtifactsSet.add(mavenProject.getArtifact());
+        }
+
+        if (directDependencies == Scope.REACTOR) {
+            for (MavenProject prj : allProjects) {
+                if (includePoms || !"pom".equals(prj.getArtifact().getType())) {
                     projectArtifactsSet.addAll(prj.getDependencyArtifacts());
                 }
-                if (useDependencies.isTransitiveDependencies()) {
-                    prj.setArtifactFilter(a -> true);
+            }
+        } else if (directDependencies == Scope.CURRENT_PROJECT) {
+            projectArtifactsSet.addAll(mavenProject.getDependencyArtifacts());
+        }
+
+        if (transitiveDependencies == Scope.REACTOR) {
+            for (MavenProject prj : allProjects) {
+                if (includePoms || !"pom".equals(prj.getArtifact().getType())) {
+                    prj.setArtifactFilter(a -> !"test".equals(a.getScope()));
                     projectArtifactsSet.addAll(prj.getArtifacts());
                 }
             }
+        } else if (transitiveDependencies == Scope.CURRENT_PROJECT) {
+            mavenProject.setArtifactFilter(a -> !"test".equals(a.getScope()));
+            projectArtifactsSet.addAll(mavenProject.getArtifacts());
         }
 
         // Sort the artifacts for readability
         ArrayList<Artifact> projectArtifacts = new ArrayList<>(projectArtifactsSet);
         Collections.sort(projectArtifacts);
 
-        LinkedHashMap<String, String> versionProperties = new LinkedHashMap();
+        LinkedHashMap<String, String> versionProperties = new LinkedHashMap<>();
         DependencyManagement depMgmt = new DependencyManagement();
         for (Artifact artifact : projectArtifacts) {
             if (isExcludedDependency(artifact)) {
@@ -436,7 +422,6 @@ public class BuildBomMojo extends AbstractMojo {
     }
 
     static class ModelWriter {
-
         void writeModel(Model pomModel, File outputFile) throws MojoExecutionException {
             if (!outputFile.getParentFile().exists()) {
                 outputFile.getParentFile().mkdirs();

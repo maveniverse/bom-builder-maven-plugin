@@ -61,7 +61,8 @@
               <bomArtifactId>junit-bom</bomArtifactId>
               <bomVersion>1.0</bomVersion>
               <usePropertiesForVersion>true</usePropertiesForVersion>
-              <useDependencies>CURRENT_PROJECT_TRANSITIVE_ONLY</useDependencies>
+              <reactorDependencies>NONE</reactorDependencies>
+              <transitiveDependencies>CURRENT_PROJECT</transitiveDependencies>
             </configuration>
           </execution>
         </executions>
