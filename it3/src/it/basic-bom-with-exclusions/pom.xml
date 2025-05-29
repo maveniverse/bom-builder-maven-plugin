@@ -59,6 +59,7 @@
               <bomGroupId>org.test</bomGroupId>
               <bomArtifactId>junit-bom</bomArtifactId>
               <bomVersion>1.0</bomVersion>
+              <reactorDependencies>NONE</reactorDependencies>
               <transitiveDependencies>CURRENT_PROJECT</transitiveDependencies>
               <exclusions>
                 <exclusion>
