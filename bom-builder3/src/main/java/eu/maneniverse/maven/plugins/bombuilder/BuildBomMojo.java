@@ -37,7 +37,12 @@ import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.plexus.util.StringUtils;
 
 /**
- * Build a BOM based on the dependencies in a GAV
+ * Generates a BOM based on the project/reactor and dependencies. The generated BOM may be attached to project w/
+ * classifier (for Maven 4 consumers) or it may replace a given subproject POM (if it is packaging=pom and
+ * have no subprojects).
+ * <p>
+ * This Mojo is affected if it needs "whole reactor"
+ * but reactor is limited in any way (ie -r or alike option used).
  */
 @Mojo(
         name = "build-bom",
@@ -92,7 +97,7 @@ public class BuildBomMojo extends AbstractMojo {
     private String bomClassifier;
 
     /**
-     * Whether to add collected versions to BOM properties
+     * Whether to add collected versions to BOM properties.
      *
      * @see #usePropertiesForVersion
      */
@@ -140,7 +145,14 @@ public class BuildBomMojo extends AbstractMojo {
     }
 
     /**
-     * The projects of the reactor to be included in generated BOM.
+     * The projects of the reactor to be included in generated BOM. Possible values and their meaning:
+     * <ul>
+     *     <li>NONE - will result that no reactor project are included in BOM.</li>
+     *     <li>REACTOR - will include whole reactor into BOM. <em>Warning: if reactor is any way "limited", it will affect this mojo output!</em></li>
+     *     <li>CURRENT_PROJECT - will include only current project into BOM.</li>
+     * </ul>
+     *
+     * Note: see also {@link #includePoms}.
      *
      * @since 1.1.1
      */
@@ -148,7 +160,12 @@ public class BuildBomMojo extends AbstractMojo {
     Scope reactorDependencies;
 
     /**
-     * The direct dependencies to be included in generated BOM.
+     * The direct dependencies to be included in generated BOM. Possible values and their meaning:
+     * <ul>
+     *     <li>NONE - will result that no direct dependencies are included in BOM.</li>
+     *     <li>REACTOR - will include whole reactor direct dependencies into BOM. <em>Warning: if reactor is any way "limited", it will affect this mojo output!</em></li>
+     *     <li>CURRENT_PROJECT - will include direct dependencies of only current project into BOM.</li>
+     * </ul>
      *
      * @since 1.1.1
      */
@@ -156,7 +173,12 @@ public class BuildBomMojo extends AbstractMojo {
     Scope directDependencies;
 
     /**
-     * The transitive dependencies to be included in generated BOM.
+     * The transitive dependencies to be included in generated BOM. Possible values and their meaning:
+     * <ul>
+     *     <li>NONE - will result that no transitive dependencies are included in BOM.</li>
+     *     <li>REACTOR - will include whole reactor transitive dependencies into BOM. <em>Warning: if reactor is any way "limited", it will affect this mojo output!</em></li>
+     *     <li>CURRENT_PROJECT - will include transitive dependencies of only current project into BOM.</li>
+     * </ul>
      *
      * @since 1.1.1
      */
@@ -400,7 +422,6 @@ public class BuildBomMojo extends AbstractMojo {
     }
 
     static class ModelWriter {
-
         void writeModel(Model pomModel, File outputFile) throws MojoExecutionException {
             if (!outputFile.getParentFile().exists()) {
                 outputFile.getParentFile().mkdirs();
