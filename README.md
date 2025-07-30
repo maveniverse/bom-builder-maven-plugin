@@ -3,9 +3,9 @@ bom-builder-maven-plugin
 
 A **Maven 3 plugin** to generate a dependency management POM, sometimes called a 
 BOM or bill of materials POM.  The plugin reads the set of dependencies in 
-the current project, and writes a new POM to "target/bom-pom.xml" which
-contains a dependency management section listing the dependencies of
-the current project.
+the current project, and generates a new POM according configuration,
+it will contain dependency management section listing of the dependencies 
+as configured (module, or whole reactor, and so on...).
 
 Note: this plugin does not takes stance what BOM is. For some, it is "reactor only",
 while for others it is "full stack" with transitive dependencies even. Hence, this
