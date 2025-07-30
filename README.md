@@ -1,5 +1,5 @@
-bom-builder-maven-plugin
-========================
+BOM Builder Maven 3 Plugin
+==========================
 
 A **Maven 3 plugin** to generate a dependency management POM, sometimes called a 
 BOM or bill of materials POM.  The plugin reads the set of dependencies in 
