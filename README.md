@@ -1,12 +1,23 @@
 bom-builder-maven-plugin
 ========================
 
-A Maven plugin to generate a dependency management POM, sometimes called a 
+A **Maven 3 plugin** to generate a dependency management POM, sometimes called a 
 BOM or bill of materials POM.  The plugin reads the set of dependencies in 
 the current project, and writes a new POM to "target/bom-pom.xml" which
 contains a dependency management section listing the dependencies of
 the current project.
 
+Note: this plugin does not takes stance what BOM is. For some, it is "reactor only",
+while for others it is "full stack" with transitive dependencies even. Hence, this
+plugin leaves for user to choose which BOM it wants generated, as this is configurable.
+Maven team calls first type of BOM "skinny", while latter BOM as "fat".
+
+Note: this plugin is able to generate BOMs with classifiers, but those 
+BOMs can be consumed ONLY with Maven 4 (new feature: BOMs with classifiers).
+
+Plugin site with [documentation is here](https://maveniverse.eu/docs/bom_builder_maven_plugin/plugin-documentation/plugin-info.html).
+
+For all covered use cases (there are a LOT!) [check out ITs here](./it3/src/it).
 
 Usage
 -----
@@ -16,7 +27,7 @@ The plugin is configured in the "plugins" section of the pom.
       <plugin>
         <groupId>eu.maveniverse.maven.plugins</groupId>
         <artifactId>bom-builder-maven-plugin</artifactId>
-        <version>1.0.2</version>
+        <version>${currentVersion}</version>
         <executions>
           <execution>
             <id>build-bom</id>
