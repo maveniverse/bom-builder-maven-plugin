@@ -46,6 +46,15 @@ The plugin is configured in the "plugins" section of the pom.
       </plugin>
     </plugins>
 
+To generate Maven 4 consumable BOMs (with classifiers), setup is trivial: just setup a plugin invocation and set
+classifier and it will be attached and deployed along with given project.
+
+To generate Maven 3 (and 4) consumable BOM (which must be a main POM artifact), the following steps are needed:
+* create a dedicated module (ie. "myproject-bom") in your reactor
+* make sure `pom.xml` packaging is set to `pom`
+* make sure there are no `modules` entry in `pom.xml` (no child projects)
+* add this plugin and configure it in build section of given `pom.xml`, as in [this IT](./it3/src/it/reactor-with-bom-module-fat/bom/pom.xml).
+* upon execution, the BOM (as configured) will be generated **and will replace given `pom.xml`**. Hence, nothing else should be present in the `pom.xml`. All the options like parent etc can be controlled via plugin configuration. 
 
 Config Parameters
 -----------------
