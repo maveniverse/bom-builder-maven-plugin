@@ -1,12 +1,23 @@
-bom-builder-maven-plugin
-========================
+BOM Builder Maven 3 Plugin
+==========================
 
-A Maven plugin to generate a dependency management POM, sometimes called a 
+A **Maven 3 plugin** to generate a dependency management POM, sometimes called a 
 BOM or bill of materials POM.  The plugin reads the set of dependencies in 
-the current project, and writes a new POM to "target/bom-pom.xml" which
-contains a dependency management section listing the dependencies of
-the current project.
+the current project, and generates a new POM according configuration,
+it will contain dependency management section listing of the dependencies 
+as configured (module, or whole reactor, and so on...).
 
+Note: this plugin does not takes stance what BOM is. For some, it is "reactor only",
+while for others it is "full stack" with transitive dependencies even. Hence, this
+plugin leaves for user to choose which BOM it wants generated, as this is configurable.
+Maven team calls first type of BOM "skinny", while latter BOM as "fat".
+
+Note: this plugin is able to generate BOMs with classifiers, but those 
+BOMs can be consumed ONLY with Maven 4 (new feature: BOMs with classifiers).
+
+Plugin site with [documentation is here](https://maveniverse.eu/docs/bom_builder_maven_plugin/plugin-documentation/plugin-info.html).
+
+For all covered use cases (there are a LOT!) [check out ITs here](./it3/src/it).
 
 Usage
 -----
@@ -16,7 +27,7 @@ The plugin is configured in the "plugins" section of the pom.
       <plugin>
         <groupId>eu.maveniverse.maven.plugins</groupId>
         <artifactId>bom-builder-maven-plugin</artifactId>
-        <version>1.0.2</version>
+        <version>${currentVersion}</version>
         <executions>
           <execution>
             <id>build-bom</id>
@@ -35,6 +46,15 @@ The plugin is configured in the "plugins" section of the pom.
       </plugin>
     </plugins>
 
+To generate Maven 4 consumable BOMs (with classifiers), setup is trivial: just setup a plugin invocation and set
+classifier and it will be attached and deployed along with given project.
+
+To generate Maven 3 (and 4) consumable BOM (which must be a main POM artifacts, without classifier), the following steps are needed:
+* create a dedicated module (ie. "myproject-bom") in your reactor
+* make sure `pom.xml` packaging is set to `pom`
+* make sure there are no `modules` entry in `pom.xml` (no child projects)
+* add this plugin and configure it in build section of given `pom.xml`, as in [this IT](./it3/src/it/reactor-with-bom-module-fat/bom/pom.xml).
+* upon execution, the BOM (as configured) will be generated **and will replace given `pom.xml`**. Hence, nothing else should be present in the `pom.xml`. All the options like parent etc can be controlled via plugin configuration. 
 
 Config Parameters
 -----------------
