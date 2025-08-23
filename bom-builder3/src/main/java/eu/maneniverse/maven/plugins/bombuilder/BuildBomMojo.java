@@ -134,6 +134,14 @@ public class BuildBomMojo extends AbstractMojo {
     private List<DependencyExclusion> dependencyExclusions;
 
     /**
+     * List of dependencies which should be included in BOM. If set, only included ones will be added to BOM.
+     *
+     * @since 1.2.1
+     */
+    @Parameter
+    private List<DependencyExclusion> dependencyInclusions;
+
+    /**
      * The scope of dependencies getting into BOM.
      *
      * @since 1.1.0
@@ -345,6 +353,9 @@ public class BuildBomMojo extends AbstractMojo {
         LinkedHashMap<String, String> versionProperties = new LinkedHashMap<>();
         DependencyManagement depMgmt = new DependencyManagement();
         for (Artifact artifact : projectArtifacts) {
+            if (!isIncludedDependency(artifact)) {
+                continue;
+            }
             if (isExcludedDependency(artifact)) {
                 continue;
             }
@@ -379,6 +390,20 @@ public class BuildBomMojo extends AbstractMojo {
             }
         }
         getLog().debug("Added " + projectArtifacts.size() + " dependencies.");
+    }
+
+    boolean isIncludedDependency(Artifact artifact) {
+        if (dependencyInclusions == null || dependencyInclusions.isEmpty()) {
+            return true;
+        }
+        for (DependencyExclusion inclusion : dependencyInclusions) {
+            if (matchesExcludedDependency(artifact, inclusion)) {
+                getLog().debug("Artifact " + artifact.getGroupId() + ":" + artifact.getArtifactId()
+                        + " matches included dependency " + inclusion.getGroupId() + ":" + inclusion.getArtifactId());
+                return true;
+            }
+        }
+        return false;
     }
 
     boolean isExcludedDependency(Artifact artifact) {
