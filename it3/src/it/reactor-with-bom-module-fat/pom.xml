@@ -27,6 +27,20 @@
   <packaging>pom</packaging>
 
   <name>Test to create reactor bom</name>
+  <description>Test to create reactor bom description</description>
+  <url>https://maveniverse.eu/bom/</url>
+  <licenses>
+    <license>
+      <name>Apache-2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <scm>
+    <connection>scm:git:git@github.com:maveniverse/bom-builder-maven-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:maveniverse/bom-builder-maven-plugin.git</developerConnection>
+    <url>https://github.com/maveniverse/bom-builder-maven-plugin</url>
+  </scm>
 
   <modules>
     <module>api</module>

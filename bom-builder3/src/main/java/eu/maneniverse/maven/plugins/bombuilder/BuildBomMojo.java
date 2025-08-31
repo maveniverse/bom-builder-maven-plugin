@@ -308,6 +308,21 @@ public class BuildBomMojo extends AbstractMojo {
         if (bomDescription != null) {
             pomModel.setDescription(bomDescription);
         }
+
+        if (attach && (bomClassifier == null || bomClassifier.trim().isEmpty())) {
+            // standalone main BOM POM; inherit required things for publishing for "this" project
+            if (bomName == null) {
+                pomModel.setName(mavenProject.getModel().getName());
+            }
+            if (bomDescription == null) {
+                pomModel.setDescription(mavenProject.getModel().getDescription());
+            }
+            pomModel.setUrl(mavenProject.getModel().getUrl());
+            pomModel.setLicenses(mavenProject.getModel().getLicenses());
+            pomModel.setDevelopers(mavenProject.getModel().getDevelopers());
+            pomModel.setScm(mavenProject.getModel().getScm());
+        }
+
         return pomModel;
     }
 
