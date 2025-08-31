@@ -19,6 +19,7 @@ import java.util.Properties;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.handler.ArtifactHandler;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Exclusion;
@@ -227,6 +228,12 @@ public class BuildBomMojo extends AbstractMojo {
     MavenProject mavenProject;
 
     /**
+     * The current project
+     */
+    @Parameter(defaultValue = "${session}")
+    MavenSession mavenSession;
+
+    /**
      * All projects from reactor
      */
     @Parameter(defaultValue = "${session.allProjects}")
@@ -309,18 +316,22 @@ public class BuildBomMojo extends AbstractMojo {
             pomModel.setDescription(bomDescription);
         }
 
-        if (attach && (bomClassifier == null || bomClassifier.trim().isEmpty())) {
-            // standalone main BOM POM; inherit required things for publishing for "this" project
+        // if attached (maybe even published) and not using parent and will be standalone POM: set required things
+        if (attach
+                && !useProjectParentAsParent
+                && (bomClassifier == null || bomClassifier.trim().isEmpty())) {
+            MavenProject inheritFrom = mavenSession.getTopLevelProject();
+
             if (bomName == null) {
-                pomModel.setName(mavenProject.getModel().getName());
+                pomModel.setName(inheritFrom.getModel().getName());
             }
             if (bomDescription == null) {
-                pomModel.setDescription(mavenProject.getModel().getDescription());
+                pomModel.setDescription(inheritFrom.getModel().getDescription());
             }
-            pomModel.setUrl(mavenProject.getModel().getUrl());
-            pomModel.setLicenses(mavenProject.getModel().getLicenses());
-            pomModel.setDevelopers(mavenProject.getModel().getDevelopers());
-            pomModel.setScm(mavenProject.getModel().getScm());
+            pomModel.setUrl(inheritFrom.getModel().getUrl());
+            pomModel.setLicenses(inheritFrom.getModel().getLicenses());
+            pomModel.setDevelopers(inheritFrom.getModel().getDevelopers());
+            pomModel.setScm(inheritFrom.getModel().getScm());
         }
 
         return pomModel;

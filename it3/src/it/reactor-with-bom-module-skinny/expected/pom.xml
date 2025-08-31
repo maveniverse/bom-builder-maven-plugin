@@ -6,8 +6,9 @@
   <artifactId>bom</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
+  <name>Test to create reactor bom</name>
   <description>Test to create reactor bom description</description>
-  <url>https://maveniverse.eu/bom/bom/</url>
+  <url>https://maveniverse.eu/bom/</url>
   <licenses>
     <license>
       <name>Apache-2.0</name>
@@ -16,9 +17,9 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:git:git@github.com:maveniverse/bom-builder-maven-plugin.git/bom</connection>
-    <developerConnection>scm:git:git@github.com:maveniverse/bom-builder-maven-plugin.git/bom</developerConnection>
-    <url>https://github.com/maveniverse/bom-builder-maven-plugin/bom</url>
+    <connection>scm:git:git@github.com:maveniverse/bom-builder-maven-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:maveniverse/bom-builder-maven-plugin.git</developerConnection>
+    <url>https://github.com/maveniverse/bom-builder-maven-plugin</url>
   </scm>
   <dependencyManagement>
     <dependencies>
