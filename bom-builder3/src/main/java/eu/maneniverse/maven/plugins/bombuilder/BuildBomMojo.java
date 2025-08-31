@@ -228,7 +228,7 @@ public class BuildBomMojo extends AbstractMojo {
     MavenProject mavenProject;
 
     /**
-     * The current project
+     * The current session
      */
     @Parameter(defaultValue = "${session}")
     MavenSession mavenSession;
