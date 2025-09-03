@@ -10,8 +10,11 @@ import java.util.Collections;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.handler.ArtifactHandler;
+import org.apache.maven.execution.DefaultMavenExecutionRequest;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Model;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.aether.RepositorySystemSession;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -51,9 +54,11 @@ public class BuildBomMojoTest {
 
     private BuildBomMojo createBuildBomMojo() {
         BuildBomMojo mojo = new BuildBomMojo(modelWriter, versionTransformer);
-        mojo.mavenProject = new MavenProject();
-        mojo.mavenProject.getBuild().setDirectory("target");
-        mojo.mavenProject.getBuild().setOutputDirectory("target/classes");
+        mojo.mavenSession =
+                new MavenSession(null, (RepositorySystemSession) null, new DefaultMavenExecutionRequest(), null);
+        mojo.mavenSession.setCurrentProject(new MavenProject());
+        mojo.mavenSession.getCurrentProject().getBuild().setDirectory("target");
+        mojo.mavenSession.getCurrentProject().getBuild().setOutputDirectory("target/classes");
         mojo.outputFilename = "pom.xml";
         mojo.allProjects = Collections.emptyList();
         mojo.reactorDependencies = BuildBomMojo.Scope.REACTOR;

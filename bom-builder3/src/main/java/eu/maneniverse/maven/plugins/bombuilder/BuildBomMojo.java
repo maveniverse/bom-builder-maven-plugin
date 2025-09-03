@@ -98,6 +98,27 @@ public class BuildBomMojo extends AbstractMojo {
     private String bomClassifier;
 
     /**
+     * If inherit values, from where to inherit them? Accepted values are "top" (default) that will use reactor
+     * top level POM, or "this" that will use values of current POM.
+     * <p>
+     * Inherited values are:
+     * <ul>
+     *     <li>project.name (if not specified explicitly)</li>
+     *     <li>project.description (if not specified explicitly)</li>
+     *     <li>project.url</li>
+     *     <li>project.licenses</li>
+     *     <li>project.developers</li>
+     *     <li>project.scm</li>
+     * </ul>
+     * These values are required to have BOM published to Maven Central.
+     *
+     * @since 1.3.0
+     * @see <a href="https://central.sonatype.org/publish/requirements/">Maven Central Requirements</a>
+     */
+    @Parameter(property = "bom.inheritFrom", defaultValue = "top")
+    private String inheritFrom;
+
+    /**
      * Whether to add collected versions to BOM properties.
      *
      * @see #usePropertiesForVersion
@@ -222,12 +243,6 @@ public class BuildBomMojo extends AbstractMojo {
     boolean attach;
 
     /**
-     * The current project
-     */
-    @Parameter(defaultValue = "${project}")
-    MavenProject mavenProject;
-
-    /**
      * The current session
      */
     @Parameter(defaultValue = "${session}")
@@ -263,6 +278,7 @@ public class BuildBomMojo extends AbstractMojo {
             model = versionsTransformer.transformPomModel(model);
             getLog().debug("Dependencies versions converted to properties");
         }
+        MavenProject mavenProject = mavenSession.getCurrentProject();
         Path outputFile = Paths.get(mavenProject.getBuild().getDirectory()).resolve(outputFilename);
         modelWriter.writeModel(model, outputFile.toFile());
         if (attach) {
@@ -284,6 +300,7 @@ public class BuildBomMojo extends AbstractMojo {
     }
 
     private Model initializeModel() throws MojoExecutionException {
+        MavenProject mavenProject = mavenSession.getCurrentProject();
         Model pomModel = new Model();
         pomModel.setModelVersion("4.0.0");
 
@@ -316,28 +333,36 @@ public class BuildBomMojo extends AbstractMojo {
             pomModel.setDescription(bomDescription);
         }
 
-        // if attached (maybe even published) and not using parent and will be standalone POM: set required things
+        // if attached (maybe even published) and not using parent and will be standalone POM: inherit required things
         if (attach
                 && !useProjectParentAsParent
                 && (bomClassifier == null || bomClassifier.trim().isEmpty())) {
-            MavenProject inheritFrom = mavenSession.getTopLevelProject();
+            if ("top".equals(inheritFrom)) {
+                mavenProject = mavenSession.getTopLevelProject();
+            } else if ("this".equals(inheritFrom)) {
+                mavenProject = mavenSession.getCurrentProject();
+            } else {
+                throw new MojoExecutionException("Invalid value for parameter inheritFrom: \"" + inheritFrom
+                        + "\"; Supported values are \"top\" (default) and \"this\"");
+            }
 
             if (bomName == null) {
-                pomModel.setName(inheritFrom.getModel().getName());
+                pomModel.setName(mavenProject.getModel().getName());
             }
             if (bomDescription == null) {
-                pomModel.setDescription(inheritFrom.getModel().getDescription());
+                pomModel.setDescription(mavenProject.getModel().getDescription());
             }
-            pomModel.setUrl(inheritFrom.getModel().getUrl());
-            pomModel.setLicenses(inheritFrom.getModel().getLicenses());
-            pomModel.setDevelopers(inheritFrom.getModel().getDevelopers());
-            pomModel.setScm(inheritFrom.getModel().getScm());
+            pomModel.setUrl(mavenProject.getModel().getUrl());
+            pomModel.setLicenses(mavenProject.getModel().getLicenses());
+            pomModel.setDevelopers(mavenProject.getModel().getDevelopers());
+            pomModel.setScm(mavenProject.getModel().getScm());
         }
 
         return pomModel;
     }
 
     private void addDependencyManagement(Model pomModel) {
+        MavenProject mavenProject = mavenSession.getCurrentProject();
         HashSet<Artifact> projectArtifactsSet = new HashSet<>();
         if (reactorDependencies == Scope.REACTOR) {
             for (MavenProject prj : allProjects) {
