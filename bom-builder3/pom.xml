@@ -21,7 +21,7 @@
   <parent>
     <groupId>eu.maveniverse.maven.bom-builder</groupId>
     <artifactId>bom-builder</artifactId>
-    <version>1.3.1</version>
+    <version>1.3.2-SNAPSHOT</version>
   </parent>
 
   <groupId>eu.maveniverse.maven.plugins</groupId>
