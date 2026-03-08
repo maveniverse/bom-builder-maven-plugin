@@ -21,7 +21,7 @@
   <parent>
     <groupId>eu.maveniverse.maven.parent</groupId>
     <artifactId>parent</artifactId>
-    <version>49</version>
+    <version>51</version>
   </parent>
 
   <groupId>eu.maveniverse.maven.bom-builder</groupId>
@@ -63,7 +63,7 @@
     <maven.compiler.release>8</maven.compiler.release>
     <requireRuntimeMavenVersion.version>[3.8,)</requireRuntimeMavenVersion.version>
 
-    <version.maven>3.9.12</version.maven>
+    <version.maven>3.9.13</version.maven>
     <version.slf4j>1.7.36</version.slf4j>
   </properties>
 
