@@ -9,7 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -399,7 +399,7 @@ public class BuildBomMojo extends AbstractMojo {
 
         // Sort the artifacts for readability
         ArrayList<Artifact> projectArtifacts = new ArrayList<>(projectArtifactsSet);
-        Collections.sort(projectArtifacts);
+        projectArtifacts.sort(Comparator.naturalOrder());
 
         LinkedHashMap<String, String> versionProperties = new LinkedHashMap<>();
         DependencyManagement depMgmt = new DependencyManagement();
