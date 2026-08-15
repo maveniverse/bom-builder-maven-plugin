@@ -28,13 +28,11 @@ import org.apache.maven.model.Parent;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.project.MavenProjectHelper;
 import org.codehaus.plexus.util.StringUtils;
 
 /**
@@ -253,9 +251,6 @@ public class BuildBomMojo extends AbstractMojo {
      */
     @Parameter(defaultValue = "${session.allProjects}")
     List<MavenProject> allProjects;
-
-    @Component
-    MavenProjectHelper mavenProjectHelper;
 
     private final PomDependencyVersionsTransformer versionsTransformer;
     private final ModelWriter modelWriter;
