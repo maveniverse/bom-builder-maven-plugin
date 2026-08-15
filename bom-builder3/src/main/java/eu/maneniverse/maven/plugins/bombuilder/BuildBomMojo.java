@@ -292,6 +292,39 @@ public class BuildBomMojo extends AbstractMojo {
                     && mavenProject.getModules().isEmpty()) {
                 getLog().debug("Replacing module POM w/ generated BOM");
                 mavenProject.setFile(outputFile.toFile());
+                // Maven 4 consumer POM compatibility: Maven 4's consumer POM transformer
+                // captures the source POM path eagerly (before mojos run) and lazily reads
+                // its content at install time. The setFile() call above has no effect on the
+                // consumer POM because its TransformedArtifact reads from the captured path.
+                //
+                // Fix: if Maven 4 has attached a consumer POM artifact (classifier="consumer"),
+                // replace it with a plain artifact pointing to our generated BOM.
+                // MavenProject.addAttachedArtifact() replaces existing artifacts with the same
+                // coordinates via indexOf+set on the internal mutable list, so this effectively
+                // swaps the TransformedArtifact for our BOM. At install time, Maven 4's
+                // remapInstallArtifacts() promotes the consumer-classified artifact to the main
+                // .pom, so consumers will see the generated BOM.
+                boolean consumerPomReplaced = false;
+                for (Artifact attached : mavenProject.getAttachedArtifacts()) {
+                    if ("consumer".equals(attached.getClassifier()) && "pom".equals(attached.getType())) {
+                        DefaultArtifact consumerArtifact = new DefaultArtifact(
+                                mavenProject.getGroupId(),
+                                mavenProject.getArtifactId(),
+                                mavenProject.getVersion(),
+                                null,
+                                "pom",
+                                "consumer",
+                                attached.getArtifactHandler());
+                        consumerArtifact.setFile(outputFile.toFile());
+                        mavenProject.addAttachedArtifact(consumerArtifact);
+                        consumerPomReplaced = true;
+                        getLog().debug("Replaced consumer POM artifact for Maven 4 compatibility");
+                        break;
+                    }
+                }
+                if (!consumerPomReplaced) {
+                    getLog().debug("No consumer POM artifact found (Maven 3 or consumer POM disabled)");
+                }
             } else {
                 throw new MojoExecutionException(
                         "Cannot replace project POM: invalid project (packaging=pom w/o modules)");
